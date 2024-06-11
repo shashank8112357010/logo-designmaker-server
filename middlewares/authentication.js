@@ -20,7 +20,8 @@ module.exports = async function (req, res, next) {
         const JWT_TOKEN = token[1];
 
         // Check if token is missing
-        if (!token) {
+        // if (!token)
+        if (!JWT_TOKEN) {
             return res.status(401).json({
                 msg: 'No token, authorization denied'
             });

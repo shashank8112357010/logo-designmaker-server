@@ -2,43 +2,62 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ticketSchema = new mongoose.Schema({
-    title: {
+    workEmail: {
         type: String,
         required: true,
     },
-    description: {
+    ticketType: {
+        type: String,
+    },
+    priorityStatus: {
+        type: String,
+        enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
+        required: true,
+    },
+    // title: {
+    //     type: String,
+    //     required: true,
+    // },
+    ticketBody: {
         type: String,
         required: true,
     },
-    status: {
-        type: String,
-        enum: ["Open", "In progress", "Closed"],
-        default: "Open",
-    },
-    priority: {
-        type: String,
-        enum: ["Low", "Medium", "High"],
-        default: "Medium",
-    },
-    createdBy: {
-        type: Schema.Types.ObjectId,
-        ref: 'userModel',
-        required: true,
-    },
-    createdAt: {
+    // status: {
+    //     type: String,
+    //     enum: ["Open", "In progress", "Closed"],
+    //     default: "Open",
+    // },
+    // priority: {
+    //     type: String,
+    //     enum: ["Low", "Medium", "High"],
+    //     default: "Medium",
+    // },
+    // createdBy: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'userModel',
+    //     required: true,
+    // },
+    postedAt: {
         type: Date,
         default: Date.now(),
     },
     replies: [
         {
-            ticketReply: {
+            ticketNumber: {
                 type: String,
             },
-            createdBy: {
-                type: Schema.Types.ObjectId,
-                ref: "userModel",
+            ticketType: {
+                type: String,
             },
-            createdAt: {
+            replyBody: {
+                type: String,
+            },
+            // createdBy: {
+            //     type: Schema.Types.ObjectId,
+            //     ref: "userModel",
+            // },
+            // ..admin
+            postedAt: {
                 type: Date,
                 default: Date.now(),
             },

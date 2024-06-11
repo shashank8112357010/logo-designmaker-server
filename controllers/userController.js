@@ -10,7 +10,7 @@ const { sendMail } = require("../helper/sendMailQueue");
 // REGISTER:
 module.exports.register = async (req, res) => {
     try {
-        const { workEmail, phoneNo, password, mailAllow } = req.body;
+        const { workEmail, phoneNo, password, mailAllow, role } = req.body;
 
         // if role of the user is not provided: 
         // if (!role) {
@@ -28,6 +28,7 @@ module.exports.register = async (req, res) => {
             phoneNo,
             password: enc_password,
             mailAllow,
+            role,
             // profile: req.file.path,
         })
 

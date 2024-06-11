@@ -9,7 +9,7 @@ const authorize = require("../middlewares/authorization");
 router.post("/createTicket", authenticate, createTicket)
 
 // getting all tickets: 
-router.get("/getAll", authenticate, getAllTickets);
+router.get("/getAll", authenticate, authorize("admin"), getAllTickets);
 
 // getting single ticket by ticket id: 
 router.get('/getSingleTicket/:id', authenticate, getTicketById);

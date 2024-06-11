@@ -1,17 +1,25 @@
 const Ticket = require("../models/ticketModel");
+const User = require("../models/userModel");
 
 // Creating a ticket: 
 module.exports.createTicket = async (req, res) => {
     try {
         // getting title, description and priority from req.body:
-        const { title, description, priority } = req.body;
+        const { workEmail, ticketType, priorityStatus, ticketBody } = req.body;
 
+        const user = await User.findOne({ workEmail });
+        if (!user) {
+            return res.status(200).json({
+                success: false,
+                message: "User with this email does not exist. So you cannot create ticket.."
+            })
+        }
         // creating a new ticket 
         const newTicket = new Ticket({
-            title,
-            description,
-            priority,
-            createdBy: req.user.id,
+            workEmail,
+            ticketType,
+            priorityStatus,
+            ticketBody,
         });
         const ticket = await newTicket.save();
 
@@ -28,7 +36,7 @@ module.exports.createTicket = async (req, res) => {
     }
 }
 
-// Get All Tickets:
+// Get All Tickets: (accessible by admin) 
 module.exports.getAllTickets = async (req, res) => {
     try {
         // getting all tickets from DB:

@@ -43,6 +43,10 @@ const userSchema = mongoose.Schema({
     keepLoggedIn: {
         type: Boolean,
         default: false,
+    },
+    role: {
+        type: String,
+        default: "user"
     }
 })
 
