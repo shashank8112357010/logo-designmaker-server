@@ -4,7 +4,6 @@ const User = require("../models/userModel");
 // Creating a ticket: 
 module.exports.createTicket = async (req, res) => {
     try {
-        // getting title, description and priority from req.body:
         const { workEmail, ticketType, priorityStatus, ticketBody } = req.body;
 
         const user = await User.findOne({ workEmail });
@@ -127,18 +126,18 @@ module.exports.deleteTicket = async (req, res) => {
 }
 
 
-// Ticket reply:
+// Ticket reply: (accessible by admin)
 module.exports.reply = async (req, res) => {
     try {
-        const { ticketReply } = req.body;
-        if (!ticketReply) {
+        const { ticketNumber, ticketType, replyBody, priorityStatus } = req.body;
+        if (!ticketNumber || !ticketType || !replyBody || !priorityStatus) {
             return res.status(400).json({
                 success: false,
-                message: "Provide the required field."
+                message: "Provide the required fields."
             })
         }
 
-        const ticket = await Ticket.findById(req.params.id);
+        const ticket = await Ticket.findById(ticketNumber);
 
         if (!ticket) {
             res.status(404).json({
@@ -146,18 +145,20 @@ module.exports.reply = async (req, res) => {
             })
         }
 
-        // if ticket is closed, can't reply: 
-        if (ticket.status === 'Closed') {
+        // if ticket is resolved, can't reply: 
+        if (ticket.priorityStatus === 'Resolved Tickets') {
             return res.status(400).json({
                 success: false,
-                message: "Cannot reply to a closed ticket.."
+                message: "Cannot reply to a resolved ticket.."
             })
         }
 
         const reply = {
-            ticketReply,
-            createdBy: req.user.id,
-            createdAt: Date.now()
+            ticketNumber: ticket._id,
+            ticketType,
+            replyBody,
+            priorityStatus,
+            postedAt: Date.now(),
         }
 
         ticket.replies.push(reply);
@@ -165,11 +166,14 @@ module.exports.reply = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Reply added to the ticket!!"
+            message: "Reply added to the ticket!!",
+            ticket
         })
     } catch (error) {
         return res.status(500).json({
-            error,
+            success: false,
+            message: "An error occurred while adding the reply.",
+            error: error.message
         })
     }
 }

@@ -44,13 +44,19 @@ const ticketSchema = new mongoose.Schema({
     replies: [
         {
             ticketNumber: {
-                type: String,
+                type: Schema.Types.ObjectId,
+                ref: "ticketModel",
             },
             ticketType: {
                 type: String,
             },
             replyBody: {
                 type: String,
+            },
+            priorityStatus: {
+                type: String,
+                enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
+                required: true,
             },
             // createdBy: {
             //     type: Schema.Types.ObjectId,

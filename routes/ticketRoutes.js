@@ -21,7 +21,7 @@ router.put('/updateTicket/:id', authenticate, updateTicket);
 router.delete("/deleteTicket/:id", authenticate, deleteTicket);
 
 // Reply to ticket: 
-router.post("/reply/:id", authenticate, authorize('admin'), reply);
+router.post("/reply", authenticate, authorize('admin'), reply);
 
 // Close ticket: 
 router.put("/close/:id", authenticate, authorize('admin'), closeTicket);
