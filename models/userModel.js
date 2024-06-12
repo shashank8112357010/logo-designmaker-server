@@ -27,14 +27,14 @@ const userSchema = mongoose.Schema({
         default: true,
     },
 
-    // profileImg: {
-    //     key: {
-    //         type: String,
-    //     },
-    //     url: {
-    //         type: String,
-    //     }
-    // },    
+    profileImg: {
+        key: {
+            type: String,
+        },
+        url: {
+            type: String,
+        }
+    },
 
     role: {
         type: String,
@@ -47,7 +47,31 @@ const userSchema = mongoose.Schema({
     role: {
         type: String,
         default: "user"
-    }
+    },
+    name: {
+        type: String,
+    },
+    username: {
+        type: String,
+    },
+    dateOfBirth: {
+        type: Date,
+    },
+    presentAddress: {
+        type: String,
+    },
+    permanentAddress: {
+        type: String,
+    },
+    city: {
+        type: String,
+    },
+    postalCode: {
+        type: Number,
+    },
+    country: {
+        type: String,
+    },
 })
 
 const userModel = mongoose.model('userModel', userSchema);

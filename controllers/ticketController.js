@@ -48,18 +48,19 @@ module.exports.getAllTickets = async (req, res) => {
 }
 
 
-// Ticket reply: (accessible by admin)
+// Ticket reply:
 module.exports.reply = async (req, res) => {
     try {
-        const { ticketNumber, ticketType, replyBody, priorityStatus } = req.body;
-        if (!ticketNumber || !ticketType || !replyBody || !priorityStatus) {
+        const { ticketNumber, replyBody } = req.body;
+        if (!ticketNumber || !replyBody) {
             return res.status(400).json({
                 success: false,
                 message: "Provide the required fields."
             })
         }
 
-        const customId = await generateCustomId('Reply');
+        const userId = req.user;
+        // const customId = await generateCustomId('Reply');
 
         const ticket = await Ticket.findById(ticketNumber);
 
@@ -78,11 +79,9 @@ module.exports.reply = async (req, res) => {
         }
 
         const reply = {
-            _id: customId,
+            createdBy: userId,
             ticketNumber: ticket._id,
-            ticketType,
             replyBody,
-            priorityStatus,
             postedAt: Date.now(),
         }
 

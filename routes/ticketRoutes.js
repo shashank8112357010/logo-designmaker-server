@@ -12,7 +12,7 @@ router.post("/createTicket", authenticate, createTicket)
 router.get("/getAll", authenticate, authorize("admin"), getAllTickets);
 
 // Reply to ticket: 
-router.post("/reply", authenticate, authorize('admin'), reply);
+router.post("/reply", authenticate, reply);
 
 // search a ticket: 
 router.get("/searchTicket", authenticate, searchTicket);

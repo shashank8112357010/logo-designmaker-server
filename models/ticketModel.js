@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 const ticketSchema = new mongoose.Schema({
     _id: {
         type: String,
-        default: () => generateCustomId('Ticket'),
     },
     title: {
         type: String,
@@ -30,25 +29,16 @@ const ticketSchema = new mongoose.Schema({
     },
     replies: [
         {
-            _id: {
-                type: String,
-                default: () => generateCustomId('Reply'),
+            createdBy: {
+                type: Schema.Types.ObjectId,
+                ref: "userModel",
             },
             ticketNumber: {
                 type: String,
                 ref: "ticketModel",
             },
-            ticketType: {
-                type: String,
-                enum: ["Finance", "Design"],
-            },
             replyBody: {
                 type: String,
-            },
-            priorityStatus: {
-                type: String,
-                enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
-                required: true,
             },
             postedAt: {
                 type: Date,

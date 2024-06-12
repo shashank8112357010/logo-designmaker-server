@@ -217,8 +217,63 @@ module.exports.searchUser = async (req, res) => {
     }
 }
 
+module.exports.editProfile = async (req, res) => {
+    upload(req, res, async (err) => {
+        try {
+            if (err) {
+                return res.status(400).json({
+                    err
+                })
+            }
 
+            const id = req.user;
 
+            const { name, username, workEmail, password, dateOfBirth, presentAddress, permanentAddress, city, postalCode, country } = req.body;
+
+            // finding the user:
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(400).json({
+                    message: "User not found"
+                });
+            }
+
+            // updating profile if details are provided: 
+            if (name) user.name = name;
+            if (username) user.username = username;
+            if (workEmail) user.workEmail = workEmail;
+            if (password) user.password = password;
+            if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+            if (presentAddress) user.presentAddress = presentAddress;
+            if (permanentAddress) user.permanentAddress = permanentAddress;
+            if (city) user.city = city;
+            if (postalCode) user.postalCode = postalCode;
+            if (country) user.country = country;
+
+            // if profile image is provided: 
+            if (req.file) {
+                const imgURL = `http://localhost:4000/uploads/${req.file.filename}`;
+                user.profileImg.key = req.file.filename;
+                user.profileImg.url = imgURL;
+            }
+
+            await user.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Profile update successfully!!",
+                user
+            })
+        }
+        catch (error) {
+            // Handle errors
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+    })
+}
 
 
 // Upload profile pic: 
@@ -258,10 +313,11 @@ module.exports.uploadProfilePicture = async (req, res) => {
                     profileImg
                 })
             } catch (error) {
-                return res.status(400).json({
+                return res.status(500).json({
                     error: error.message
                 })
             }
         }
     })
 }
+

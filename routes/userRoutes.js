@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile } = require("../controllers/userController");
 const upload = require("../middlewares/multer");
 const { registerValidator, loginValidator, requirementsValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
-const auth = require("../middlewares/authentication");
+const authenticate = require("../middlewares/authentication");
 const passport = require('passport');
 const { ensureGuest, ensureAuth } = require("../middlewares/googleAuth");
 const userModel = require("../models/userModel");
@@ -21,8 +21,11 @@ router.post("/requirements/:id", validate(requirementsValidator), setUserRequire
 router.get("/search", searchUser);
 
 
+// edit profile:
+router.put("/editProfile", authenticate, editProfile);
+
 router.post("/login", validate(loginValidator), loginUser)
-router.post("/uploadprofile", auth, uploadProfilePicture)
+router.post("/uploadprofile", authenticate, uploadProfilePicture)
 
 
 
