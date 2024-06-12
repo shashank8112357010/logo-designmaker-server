@@ -1,54 +1,46 @@
 const mongoose = require("mongoose");
+const generateCustomId = require("../helper/generateCustomId");
 const Schema = mongoose.Schema;
 
 const ticketSchema = new mongoose.Schema({
-    workEmail: {
+    _id: {
+        type: String,
+        default: () => generateCustomId('Ticket'),
+    },
+    title: {
         type: String,
         required: true,
     },
     ticketType: {
         type: String,
+        enum: ["Finance", "Design"],
     },
     priorityStatus: {
         type: String,
         enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
         required: true,
     },
-    // title: {
-    //     type: String,
-    //     required: true,
-    // },
     ticketBody: {
         type: String,
         required: true,
     },
-    // status: {
-    //     type: String,
-    //     enum: ["Open", "In progress", "Closed"],
-    //     default: "Open",
-    // },
-    // priority: {
-    //     type: String,
-    //     enum: ["Low", "Medium", "High"],
-    //     default: "Medium",
-    // },
-    // createdBy: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'userModel',
-    //     required: true,
-    // },
     postedAt: {
         type: Date,
         default: Date.now(),
     },
     replies: [
         {
+            _id: {
+                type: String,
+                default: () => generateCustomId('Reply'),
+            },
             ticketNumber: {
-                type: Schema.Types.ObjectId,
+                type: String,
                 ref: "ticketModel",
             },
             ticketType: {
                 type: String,
+                enum: ["Finance", "Design"],
             },
             replyBody: {
                 type: String,
@@ -58,11 +50,6 @@ const ticketSchema = new mongoose.Schema({
                 enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
                 required: true,
             },
-            // createdBy: {
-            //     type: Schema.Types.ObjectId,
-            //     ref: "userModel",
-            // },
-            // ..admin
             postedAt: {
                 type: Date,
                 default: Date.now(),
