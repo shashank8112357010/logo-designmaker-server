@@ -217,6 +217,7 @@ module.exports.searchUser = async (req, res) => {
     }
 }
 
+// Edit user profile:
 module.exports.editProfile = async (req, res) => {
     upload(req, res, async (err) => {
         try {
@@ -233,7 +234,7 @@ module.exports.editProfile = async (req, res) => {
             // finding the user:
             const user = await User.findById(id);
             if (!user) {
-                return res.status(400).json({
+                return res.status(404).json({
                     message: "User not found"
                 });
             }
@@ -266,13 +267,53 @@ module.exports.editProfile = async (req, res) => {
             })
         }
         catch (error) {
-            // Handle errors
             return res.status(500).json({
                 success: false,
                 error: error.message
             });
         }
     })
+}
+
+
+// Change Password:
+module.exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const isMatched = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatched) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect current password",
+            })
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error
+        })
+    }
 }
 
 

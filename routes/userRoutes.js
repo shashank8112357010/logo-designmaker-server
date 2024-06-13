@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword } = require("../controllers/userController");
 const upload = require("../middlewares/multer");
 const { registerValidator, loginValidator, requirementsValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
@@ -20,9 +20,11 @@ router.post("/requirements/:id", validate(requirementsValidator), setUserRequire
 // search users: 
 router.get("/search", searchUser);
 
-
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
+
+// change password:
+router.put("/changePassword", authenticate, changePassword);
 
 router.post("/login", validate(loginValidator), loginUser)
 router.post("/uploadprofile", authenticate, uploadProfilePicture)

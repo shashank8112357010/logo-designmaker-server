@@ -72,6 +72,13 @@ const userSchema = mongoose.Schema({
     country: {
         type: String,
     },
+
+    currentPassword: {
+        type: String,
+    },
+    newPassword: {
+        type: String,
+    },
 })
 
 const userModel = mongoose.model('userModel', userSchema);
