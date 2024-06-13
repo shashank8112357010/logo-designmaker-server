@@ -48,15 +48,6 @@ const userSchema = mongoose.Schema({
         type: String,
         default: "user"
     },
-    name: {
-        type: String,
-    },
-    username: {
-        type: String,
-    },
-    dateOfBirth: {
-        type: Date,
-    },
     presentAddress: {
         type: String,
     },
@@ -73,12 +64,19 @@ const userSchema = mongoose.Schema({
         type: String,
     },
 
-    currentPassword: {
-        type: String,
+    otpInfo: {
+        otp: {
+            type: String,
+        },
+        expiresAt: {
+            type: Date,
+            index: { expires: '2m' }
+        }
     },
-    newPassword: {
-        type: String,
-    },
+    twoFactor: {
+        type: Boolean,
+        default: false,
+    }
 })
 
 const userModel = mongoose.model('userModel', userSchema);

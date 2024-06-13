@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const generateCustomId = require("../helper/generateCustomId");
+const generateCustomId = require("../helper/generate");
 const Schema = mongoose.Schema;
 
 const ticketSchema = new mongoose.Schema({

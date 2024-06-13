@@ -1,4 +1,4 @@
-const generateCustomId = require("../helper/generateCustomId");
+const generateCustomId = require("../helper/generate");
 const Ticket = require("../models/ticketModel");
 
 // Creating a ticket: 

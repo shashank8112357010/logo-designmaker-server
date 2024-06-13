@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const upload = require("../middlewares/multer");
 // const emailQueue = require("../helper/queue");
 const { sendMail } = require("../helper/sendMailQueue");
+const twilio = require("twilio");
+const { generateOTP, sendOTP } = require("../helper/generate");
+
 
 // REGISTER:
 module.exports.register = async (req, res) => {
@@ -136,6 +139,8 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
+        const phone = user.phoneNo;
+
         // checking if provided password is same as the correct password: 
         const matched = await bcrypt.compare(password, user.password);
 
@@ -150,7 +155,7 @@ module.exports.loginUser = async (req, res) => {
         // correct password:
         if (matched) {
             const token = jwt.sign(
-                { id: user._id, workEmail: user.workEmail },      // payload
+                { id: user._id, workEmail: user.workEmail, role },      // payload
                 process.env.JWT_SECRET,      // jwt-key
                 {
                     expiresIn: "2h",
@@ -165,6 +170,37 @@ module.exports.loginUser = async (req, res) => {
                 expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
                 httpOnly: true,
             };
+
+            if (user.twoFactor === true) {
+                // sending OTP to user: 
+                const providedOTP = await generateOTP();
+                user.otpInfo = {
+                    otp: providedOTP,
+                    expiresAt: new Date(Date.now() + 2 * 60 * 1000) // 2 minutes from now
+                };
+                await user.save();
+                await sendOTP(phone, providedOTP);
+
+                // return res.status(200).json({
+                //     success: true,
+                //     message: "OTP sent successfully",
+                // })
+
+                // verifying the OTP:
+                if (!user.otpInfo || user.otpInfo.otp !== providedOTP || user.otpInfo.expiresAt < Date.now()) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Incorrect or expired OTP"
+                    });
+                }
+
+                return res.status(200).cookie("cookie", token, options).json({
+                    success: true,
+                    token,
+                    user,
+                })
+
+            }
 
             res.status(200).cookie("cookie", token, options).json({
                 success: true,
@@ -229,7 +265,7 @@ module.exports.editProfile = async (req, res) => {
 
             const id = req.user;
 
-            const { name, username, workEmail, password, dateOfBirth, presentAddress, permanentAddress, city, postalCode, country } = req.body;
+            const { firstName, lastName, workEmail, phoneNo, businessName, presentAddress, permanentAddress, city, postalCode, country } = req.body;
 
             // finding the user:
             const user = await User.findById(id);
@@ -240,11 +276,11 @@ module.exports.editProfile = async (req, res) => {
             }
 
             // updating profile if details are provided: 
-            if (name) user.name = name;
-            if (username) user.username = username;
+            if (firstName) user.firstName = firstName;
+            if (lastName) user.lastName = lastName;
+            if (businessName) user.businessName = businessName;
             if (workEmail) user.workEmail = workEmail;
-            if (password) user.password = password;
-            if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+            if (phoneNo) user.phoneNo = phoneNo;
             if (presentAddress) user.presentAddress = presentAddress;
             if (permanentAddress) user.permanentAddress = permanentAddress;
             if (city) user.city = city;
@@ -279,8 +315,12 @@ module.exports.editProfile = async (req, res) => {
 // Change Password:
 module.exports.changePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword } = req.body;
+        const { currentPassword, newPassword, twoFactor } = req.body;
         const userId = req.user;
+
+        // getting phone number of user:
+        // const phone = req.user.phoneNo;
+        // console.log(phone);
 
         const user = await User.findById(userId);
 
@@ -301,7 +341,9 @@ module.exports.changePassword = async (req, res) => {
         }
 
         user.password = await bcrypt.hash(newPassword, 10);
-
+        if (twoFactor) {
+            user.twoFactor = twoFactor
+        }
         await user.save();
 
         return res.status(200).json({
@@ -311,7 +353,7 @@ module.exports.changePassword = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error
+            error: error.message
         })
     }
 }
