@@ -70,7 +70,6 @@ const userSchema = mongoose.Schema({
         },
         expiresAt: {
             type: Date,
-            index: { expires: '2m' }
         }
     },
     twoFactor: {

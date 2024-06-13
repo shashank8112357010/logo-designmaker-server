@@ -139,8 +139,6 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
-        const phone = user.phoneNo;
-
         // checking if provided password is same as the correct password: 
         const matched = await bcrypt.compare(password, user.password);
 
@@ -153,61 +151,48 @@ module.exports.loginUser = async (req, res) => {
         }
 
         // correct password:
-        if (matched) {
-            const token = jwt.sign(
-                { id: user._id, workEmail: user.workEmail, role },      // payload
-                process.env.JWT_SECRET,      // jwt-key
-                {
-                    expiresIn: "2h",
-                },
-            )
-            user.token = token;
-            // user.password = undefined
+        const phone = user.phoneNo;
+        const role = user.role;
 
-            await user.save();
-            // generating cookies: 
-            const options = {
-                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-                httpOnly: true,
+        const token = jwt.sign(
+            { id: user._id, workEmail: user.workEmail, role },      // payload
+            process.env.JWT_SECRET,      // jwt-key
+            {
+                expiresIn: "2h",
+            },
+        )
+        user.token = token;
+        // user.password = undefined
+
+        await user.save();
+        // generating cookies: 
+        const options = {
+            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+        };
+
+        if (user.twoFactor === true) {
+            // sending OTP to user: 
+            const providedOTP = await generateOTP();
+            user.otpInfo = {
+                otp: providedOTP,
+                expiresAt: new Date(Date.now() + 2 * 60 * 1000) // 2 minutes from now
             };
+            await user.save();
+            await sendOTP(phone, providedOTP);
 
-            if (user.twoFactor === true) {
-                // sending OTP to user: 
-                const providedOTP = await generateOTP();
-                user.otpInfo = {
-                    otp: providedOTP,
-                    expiresAt: new Date(Date.now() + 2 * 60 * 1000) // 2 minutes from now
-                };
-                await user.save();
-                await sendOTP(phone, providedOTP);
-
-                // return res.status(200).json({
-                //     success: true,
-                //     message: "OTP sent successfully",
-                // })
-
-                // verifying the OTP:
-                if (!user.otpInfo || user.otpInfo.otp !== providedOTP || user.otpInfo.expiresAt < Date.now()) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Incorrect or expired OTP"
-                    });
-                }
-
-                return res.status(200).cookie("cookie", token, options).json({
-                    success: true,
-                    token,
-                    user,
-                })
-
-            }
-
-            res.status(200).cookie("cookie", token, options).json({
+            return res.status(200).json({
                 success: true,
+                message: "OTP sent successfully",
                 token,
-                user,
             })
         }
+        // if two factor is false; directly user will log in:
+        res.status(200).cookie("cookie", token, options).json({
+            success: true,
+            token,
+            user,
+        })
     } catch (error) {
         // console.log(error);
         return res.status(500).json({
@@ -217,6 +202,56 @@ module.exports.loginUser = async (req, res) => {
     }
 }
 
+// otp verification:
+module.exports.verifyOTP = async (req, res) => {
+    try {
+        const { otp } = req.body;
+
+        if (!otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Provide OTP"
+            })
+        }
+
+        // const userId = req.user;
+        // const user = await User.find(userId);
+
+        const user = req.user;
+
+        if (!user.otpInfo) {
+            return res.status(404).json({
+                success: false,
+                message: "OTP not found"
+            })
+        }
+
+        if (user.otpInfo.otp != otp || user.otpInfo.expiresAt < Date.now()) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect or expired OTP"
+            })
+        }
+
+        user.otpInfo = null;
+        await user.save();
+
+        const options = {
+            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+        }
+        return res.status(200).cookie("cookie", user.token, options).json({
+            success: true,
+            token: user.token,
+            user,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        })
+    }
+}
 
 // Searching user: 
 module.exports.searchUser = async (req, res) => {
