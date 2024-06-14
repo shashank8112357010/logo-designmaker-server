@@ -4,10 +4,10 @@ const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const upload = require("../middlewares/multer");
-// const emailQueue = require("../helper/queue");
 const { sendMail } = require("../helper/sendMailQueue");
-const twilio = require("twilio");
 const { generateOTP, sendOTP } = require("../helper/generate");
+const emailQueue = require("../helper/emailQueue");
+
 
 
 // REGISTER:
@@ -40,6 +40,17 @@ module.exports.register = async (req, res) => {
             "Welcome to Logo Design Maker",      // subject
             "Welcome to Logo Design Maker. You have been registered successfully!!"     // message
         )
+
+        // emailQueue.add({
+        //     to: workEmail,
+        //     subject: "Welcome to Logo Design Maker",
+        //     text: "Welcome to LOGO DESIGN MAKER. You have been registered successfully."
+        // }).then((job) => {
+        //     console.log('Job added to the queue:', job.id);
+        // }).catch((err) => {
+        //     console.error('Error adding job to the queue:', err);
+        // });
+
 
         // generating token:
         // const token = jwt.sign(
