@@ -428,14 +428,12 @@ module.exports.changePassword = async (req, res) => {
 
 module.exports.enableTwoFactor = async (req, res) => {
     try {
-        const { twoFactor } = req.params;
+        const { twoFactor } = req.query;
         console.log(twoFactor)
-        const user = await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
-
-
+        await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
         return res.status(200).json({
             success: true,
-            message: `Two factor authentication ${twoFactor ? 'enabled' : 'disabled'}`
+            message: `Two factor authentication ${twoFactor == 'true' ? 'enabled' : 'disabled'}`
         })
     } catch (error) {
         return res.status(500).json({

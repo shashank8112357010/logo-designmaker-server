@@ -32,7 +32,7 @@ router.post("/verifyOTP", authenticate, verifyOTP);
 router.post("/uploadprofile", authenticate, uploadProfilePicture)
 
 // twoFactor: 
-router.put("/enableTwoFactor/:twoFactor", authenticate, enableTwoFactor);
+router.post("/enableTwoFactor", authenticate, enableTwoFactor);
 
 // Google OAuth routes: 
 router.get('/auth/google', passport.authenticate('google', {
