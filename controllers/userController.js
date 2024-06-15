@@ -164,7 +164,7 @@ module.exports.loginUser = async (req, res) => {
         // correct password:
         // const phone = user.phoneNo;
         // const role = user.role;
-        const { phone, role } = user
+        const { phoneNo, role } = user
 
         const token = jwt.sign(
             { id: user._id, workEmail: user.workEmail, role },      // payload
@@ -178,20 +178,20 @@ module.exports.loginUser = async (req, res) => {
 
         // await user.save();
         // generating cookies: 
-        const options = {
-            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-            httpOnly: true,
-        };
+        // const options = {
+        //     expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        //     httpOnly: true,
+        // };
 
         if (user.twoFactor === true) {
             // sending OTP to user: 
             const providedOTP = await generateOTP();
             user.otpInfo = {
                 otp: providedOTP,
-                expiresAt: new Date(Date.now() + 2 * 60 * 1000) // 2 minutes from now
+                expiresAt: null // 2 minutes from now
             };
             await user.save();
-            await sendOTP(phone, providedOTP);
+            await sendOTP(phoneNo, providedOTP);
 
             return res.status(200).json({
                 success: true,
