@@ -1,52 +1,60 @@
 
 const passport = require("passport")
 const GoogleStrategy = require("passport-google-oauth20").Strategy
-const mongoose = require('mongoose')
 const User = require("../models/userModel");
 
 
-module.exports = function (passport) {
-    passport.use(
-        new GoogleStrategy(
-            {
-                clientID: process.env.GOOGLE_OAUTH_CLIENT_ID,
-                clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-                callbackURL: 'http://localhost:4000/api/dashboard/auth/google/callback'
-            },
-            async (accessToken, refreshToken, profile, done) => {
-                // getting user data from google: 
-                const newUser = {
-                    googleId: profile.id,
-                    displayName: profile.displayName,
-                    email: profile.emails[0].value
+// module.exports = function (passport) {
+passport.use(
+    new GoogleStrategy(
+        {
+            clientID: process.env.GOOGLE_OAUTH_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+            callbackURL: 'http://localhost:4000/api/dashboard/auth/google/callback'
+        },
+        async (accessToken, refreshToken, profile, done) => {
+            try {
+                const { id, emails } = profile;
+                const workEmail = emails[0].value;
+
+                if (!workEmail) {
+                    throw new Error("Google does not provide an email address");
                 }
 
-                // finding the user in the database: 
-                try {
-                    let user = await User.findOne({ googleId: profile.id })
-                    // let user = await User.findOne({ email: profile.emails[0].value })
-
-
-                    if (user) {
-                        done(null, user)
+                // finding or creating user: 
+                let user = await User.findOne({ googleId: id });
+                if (!user) {
+                    user = await User.findOne({ workEmail });
+                    if (!user) {
+                        user = new User({
+                            googleId: id,
+                            workEmail: workEmail
+                        });
+                        await user.save();
                     } else {
-                        user = await User.create(newUser)
-                        done(null, user)
+                        user.googleId = id;
+                        await user.save();
                     }
-                } catch (error) {
-                    console.log(error)
+
                 }
+                done(null, user);
+            } catch (error) {
+                done(error, null);
             }
-        )
+        }
     )
+)
 
-    passport.serializeUser((user, done) => {
-        done(null, user.id)
-        // done(null, user.email)
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
 
-    })
-
-    passport.deserializeUser((id, done) => {
-        User.findById(id, (err, user) => done(err, user))
-    })
-}    
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (error) {
+        done(error, null);
+    }
+})
+// }    

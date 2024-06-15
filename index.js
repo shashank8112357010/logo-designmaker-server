@@ -36,7 +36,7 @@ app.use(
     })
 )
 // passport middleware: 
-require("./config/passport.js")(passport);
+require("./config/passport.js");
 app.use(passport.initialize())
 app.use(passport.session())
 

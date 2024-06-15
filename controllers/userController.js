@@ -162,8 +162,9 @@ module.exports.loginUser = async (req, res) => {
         }
 
         // correct password:
-        const phone = user.phoneNo;
-        const role = user.role;
+        // const phone = user.phoneNo;
+        // const role = user.role;
+        const { phone, role } = user
 
         const token = jwt.sign(
             { id: user._id, workEmail: user.workEmail, role },      // payload
@@ -172,10 +173,10 @@ module.exports.loginUser = async (req, res) => {
                 expiresIn: "2h",
             },
         )
-        user.token = token;
+        // user.token = token;
         // user.password = undefined
 
-        await user.save();
+        // await user.save();
         // generating cookies: 
         const options = {
             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -195,15 +196,21 @@ module.exports.loginUser = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
+            })
+        }
+        else {
+            return res.status(200).json({
+                success: true,
+                message: "Logged in successfully",
                 token,
             })
         }
         // if two factor is false; directly user will log in:
-        res.status(200).cookie("cookie", token, options).json({
-            success: true,
-            token,
-            user,
-        })
+        // res.status(200).cookie("cookie", token, options).json({
+        //     success: true,
+        //     token,
+        //     user,
+        // })
     } catch (error) {
         // console.log(error);
         return res.status(500).json({
@@ -237,12 +244,29 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
-        if (user.otpInfo.otp != otp || user.otpInfo.expiresAt < Date.now()) {
+        // if (user.otpInfo.otp != otp || user.otpInfo.expiresAt < Date.now()) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Incorrect or expired OTP"
+        //     })
+        // }
+
+        if (user.otpInfo.expiresAt < Date.now()) {
+            // user.otpInfo = null; // Clear expired OTP
+            // await user.save();
             return res.status(400).json({
                 success: false,
-                message: "Incorrect or expired OTP"
-            })
+                message: "Expired OTP"
+            });
         }
+
+        if (user.otpInfo.otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect OTP"
+            });
+        }
+
 
         user.otpInfo = null;
         await user.save();
@@ -361,7 +385,7 @@ module.exports.editProfile = async (req, res) => {
 // Change Password:
 module.exports.changePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword, twoFactor } = req.body;
+        const { currentPassword, newPassword } = req.body;
         const userId = req.user;
 
         // getting phone number of user:
@@ -387,14 +411,31 @@ module.exports.changePassword = async (req, res) => {
         }
 
         user.password = await bcrypt.hash(newPassword, 10);
-        if (twoFactor) {
-            user.twoFactor = twoFactor
-        }
         await user.save();
 
         return res.status(200).json({
             success: true,
             message: "Password updated successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
+
+module.exports.enableTwoFactor = async (req, res) => {
+    try {
+        const { twoFactor } = req.params;
+        console.log(twoFactor)
+        const user = await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
+
+
+        return res.status(200).json({
+            success: true,
+            message: `Two factor authentication ${twoFactor ? 'enabled' : 'disabled'}`
         })
     } catch (error) {
         return res.status(500).json({

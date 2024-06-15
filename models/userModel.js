@@ -7,19 +7,19 @@ const userSchema = mongoose.Schema({
     },
     workEmail: {
         type: String,
-        required: true,
+        // required: true,
         unique: true,
         index: true
     },
     phoneNo: {
         type: String,
-        required: true,
+        // required: true,
         unique: true,
         index: true
     },
     password: {
         type: String,
-        required: true,
+        // required: true,
     },
 
     mailAllow: {
@@ -34,10 +34,6 @@ const userSchema = mongoose.Schema({
         url: {
             type: String,
         }
-    },
-
-    role: {
-        type: String,
     },
 
     keepLoggedIn: {
