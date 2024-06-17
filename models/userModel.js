@@ -21,7 +21,9 @@ const userSchema = mongoose.Schema({
         type: String,
         // required: true,
     },
-
+    username: {
+        type: String
+    },
     mailAllow: {
         type: Boolean,
         default: true,
@@ -60,13 +62,17 @@ const userSchema = mongoose.Schema({
         type: String,
     },
 
-    otpInfo: {
-        otp: {
-            type: String,
-        },
-        expiresAt: {
-            type: Date,
-        }
+    // otpInfo: {
+    //     otp: {
+    //         type: String,
+    //     },
+    //     expiresAt: {
+    //         type: Date,
+    //     }
+    // },
+    otp: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'otpModel'
     },
     twoFactor: {
         type: Boolean,

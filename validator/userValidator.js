@@ -13,14 +13,23 @@ module.exports.registerValidator = [
             }
         }),
 
+    body("username")
+        .notEmpty().withMessage("Please enter a username")
+        .custom(async (value) => {
+            const existingUser = await userModel.findOne({ username: value });
+            if (existingUser) {
+                throw new Error("User with this username already exists!! Please use a different one..");
+            }
+        }),
+
     body("password")
         .notEmpty().withMessage("Please enter a password")
         // .isString().withMessage("Please enter a valid password")
-        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters")
         .matches(/[a-z]/).withMessage("Must contain one lowercase letter")
         .matches(/[0-9]/).withMessage("Must contain one number")
         .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
-        .matches(/[!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character"),
+        .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
+        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
 
     body("phoneNo")
         .notEmpty().withMessage("Please enter phone number")
@@ -59,7 +68,6 @@ module.exports.requirementsValidator = [
         .notEmpty().withMessage("Provide a brand name to create logo")
         .isString().withMessage("Please enter a valid brand name")
 ]
-
 
 
 // login validations: 

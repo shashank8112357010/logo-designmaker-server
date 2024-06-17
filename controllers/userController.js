@@ -7,13 +7,13 @@ const upload = require("../middlewares/multer");
 const { sendMail } = require("../helper/sendMailQueue");
 const { generateOTP, sendOTP } = require("../helper/generate");
 const emailQueue = require("../helper/emailQueue");
+const OTP = require("../models/otpModel")
 
 
-
-// REGISTER:
+// REGISTER USER:
 module.exports.register = async (req, res) => {
     try {
-        const { workEmail, phoneNo, password, mailAllow, role } = req.body;
+        const { workEmail, username, phoneNo, password, mailAllow, role } = req.body;
 
         // if role of the user is not provided: 
         // if (!role) {
@@ -28,6 +28,7 @@ module.exports.register = async (req, res) => {
         // saving details of current user: 
         const user = await User.create({
             workEmail,
+            username,
             phoneNo,
             password: enc_password,
             mailAllow,
@@ -38,19 +39,8 @@ module.exports.register = async (req, res) => {
         await sendMail(
             workEmail,          // user email
             "Welcome to Logo Design Maker",      // subject
-            "Welcome to Logo Design Maker. You have been registered successfully!!"     // message
+            "Welcome to Logo Design Maker. You have been registered successfully!!"     // message to be sent
         )
-
-        // emailQueue.add({
-        //     to: workEmail,
-        //     subject: "Welcome to Logo Design Maker",
-        //     text: "Welcome to LOGO DESIGN MAKER. You have been registered successfully."
-        // }).then((job) => {
-        //     console.log('Job added to the queue:', job.id);
-        // }).catch((err) => {
-        //     console.error('Error adding job to the queue:', err);
-        // });
-
 
         // generating token:
         // const token = jwt.sign(
@@ -61,16 +51,12 @@ module.exports.register = async (req, res) => {
         //     }
         // )
 
-        // user.token = token,
-        // user.password = undefined
-
         return res.status(200).json({
             success: true,
             message: "User registered successfully!!",
             user,
         })
     } catch (error) {
-        // console.log(error);
         return res.status(500).json({
             success: false,
             message: error.message,
@@ -111,13 +97,13 @@ module.exports.setUserRequirements = async (req, res) => {
             fontOptions,
             colorOptions
         });
+        // user id is not mentioned in db.. 
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Requirements collected..",
             userReq
         })
-
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -133,7 +119,7 @@ module.exports.loginUser = async (req, res) => {
         const { workEmail, password, keepLoggedIn } = req.body;
 
         if (!workEmail || !password) {
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: "Provide all details!"
             });
@@ -144,7 +130,7 @@ module.exports.loginUser = async (req, res) => {
 
         // if user is not found: 
         if (!user) {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
@@ -162,21 +148,18 @@ module.exports.loginUser = async (req, res) => {
         }
 
         // correct password:
-        // const phone = user.phoneNo;
-        // const role = user.role;
         const { phoneNo, role } = user
 
         const token = jwt.sign(
-            { id: user._id, workEmail: user.workEmail, role },      // payload
+            {
+                id: user._id, workEmail: user.workEmail, role
+            },      // payload
             process.env.JWT_SECRET,      // jwt-key
             {
                 expiresIn: "2h",
             },
         )
-        // user.token = token;
-        // user.password = undefined
 
-        // await user.save();
         // generating cookies: 
         // const options = {
         //     expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -184,18 +167,21 @@ module.exports.loginUser = async (req, res) => {
         // };
 
         if (user.twoFactor === true) {
-            // sending OTP to user: 
+            // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
-            user.otpInfo = {
-                otp: providedOTP,
-                expiresAt: null // 2 minutes from now
-            };
+            // console.log(providedOTP)
+            const otpDoc = new OTP({ otpCode: providedOTP });
+            await otpDoc.save();
+
+            user.otp = otpDoc._id;
             await user.save();
+            // sending otp:
             await sendOTP(phoneNo, providedOTP);
 
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
+                token
             })
         }
         else {
@@ -212,7 +198,6 @@ module.exports.loginUser = async (req, res) => {
         //     user,
         // })
     } catch (error) {
-        // console.log(error);
         return res.status(500).json({
             success: false,
             message: error.message,
@@ -220,7 +205,7 @@ module.exports.loginUser = async (req, res) => {
     }
 }
 
-// otp verification:
+
 module.exports.verifyOTP = async (req, res) => {
     try {
         const { otp } = req.body;
@@ -229,52 +214,49 @@ module.exports.verifyOTP = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Provide OTP"
-            })
-        }
-
-        // const userId = req.user;
-        // const user = await User.find(userId);
-
-        const user = req.user;
-
-        if (!user.otpInfo) {
-            return res.status(404).json({
-                success: false,
-                message: "OTP not found"
-            })
-        }
-
-        // if (user.otpInfo.otp != otp || user.otpInfo.expiresAt < Date.now()) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Incorrect or expired OTP"
-        //     })
-        // }
-
-        if (user.otpInfo.expiresAt < Date.now()) {
-            // user.otpInfo = null; // Clear expired OTP
-            // await user.save();
-            return res.status(400).json({
-                success: false,
-                message: "Expired OTP"
             });
         }
 
-        if (user.otpInfo.otp !== otp) {
+        const user = await User.findById(req.user._id).populate('otp');
+
+
+        if (!user || !user.otp || user.otp.otpCode !== otp) {
             return res.status(400).json({
                 success: false,
                 message: "Incorrect OTP"
             });
         }
 
+        // Check OTP expiration (optional step)
+        const otpExpiration = new Date(user.otp.createdAt);
+        otpExpiration.setMinutes(otpExpiration.getMinutes() + 2); // OTP expires after 2 minutes
 
-        user.otpInfo = null;
-        await user.save();
+        if (otpExpiration < new Date()) {
+            // OTP expired
+            await User.updateOne(
+                { _id: user._id },
+                { $unset: { otp: 1 } } // Unset OTP field
+            );
+
+            return res.status(400).json({
+                success: false,
+                message: "Expired OTP"
+            });
+        }
+
+        // Clear OTP after successful verification
+        await User.findByIdAndUpdate(
+            { _id: user._id },
+            { $unset: { otp: 1 } } // Unset OTP field
+        );
+        await OTP.deleteOne({ _id: user.otp._id });
+
 
         const options = {
             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
             httpOnly: true,
-        }
+        };
+
         return res.status(200).cookie("cookie", user.token, options).json({
             success: true,
             token: user.token,
@@ -284,9 +266,11 @@ module.exports.verifyOTP = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: error.message,
-        })
+        });
     }
-}
+};
+
+
 
 // Searching user: 
 module.exports.searchUser = async (req, res) => {

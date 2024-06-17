@@ -16,7 +16,9 @@ const { sendOTP } = require("../helper/generate");
 // user registration: 
 router.post("/register", validate(registerValidator), register);
 // user requirements: 
-router.post("/requirements/:id", validate(requirementsValidator), setUserRequirements);
+router.post("/requirements/:id", authenticate, validate(requirementsValidator), setUserRequirements);
+// Login:
+router.post("/login", validate(loginValidator), loginUser)
 
 // search users: 
 router.get("/search", searchUser);
@@ -27,7 +29,6 @@ router.put("/editProfile", authenticate, editProfile);
 // change password:
 router.put("/changePassword", authenticate, changePassword);
 
-router.post("/login", validate(loginValidator), loginUser)
 router.post("/verifyOTP", authenticate, verifyOTP);
 router.post("/uploadprofile", authenticate, uploadProfilePicture)
 
