@@ -8,7 +8,7 @@ const { sendMail } = require("../helper/sendMailQueue");
 const { generateOTP, sendOTP } = require("../helper/generate");
 const emailQueue = require("../helper/emailQueue");
 const OTP = require("../models/otpModel")
-
+const cron = require("node-cron");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -81,7 +81,7 @@ module.exports.register = async (req, res) => {
 // Register user requirements: 
 module.exports.setUserRequirements = async (req, res) => {
     try {
-        const { id } = req.params.id;
+        const { id } = req.params;
         const { firstName, lastName, businessName, brandName, slogan, designRequirements, niche, other, fontOptions, colorOptions } = req.body;
 
         const userReq = await UserReq.create({
@@ -97,7 +97,6 @@ module.exports.setUserRequirements = async (req, res) => {
             fontOptions,
             colorOptions
         });
-        // user id is not mentioned in db.. 
 
         return res.status(200).json({
             success: true,
@@ -114,6 +113,7 @@ module.exports.setUserRequirements = async (req, res) => {
 
 
 // LOGIN:
+// session (login):
 module.exports.loginUser = async (req, res) => {
     try {
         const { workEmail, password, keepLoggedIn } = req.body;
@@ -136,6 +136,12 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
+        // if boolean value keepLoggedIn is provided; update the value in DB:
+        if (keepLoggedIn) {
+            user.keepLoggedIn = keepLoggedIn
+        }
+        await user.save();
+
         // checking if provided password is same as the correct password: 
         const matched = await bcrypt.compare(password, user.password);
 
@@ -150,15 +156,12 @@ module.exports.loginUser = async (req, res) => {
         // correct password:
         const { phoneNo, role } = user
 
-        const token = jwt.sign(
-            {
-                id: user._id, workEmail: user.workEmail, role
-            },      // payload
-            process.env.JWT_SECRET,      // jwt-key
-            {
-                expiresIn: "2h",
-            },
-        )
+        // Setting Session Data: 
+        // req.session.isLoggedIn = true;
+        req.session.user = user;
+
+        const token = await generateToken(user);
+
 
         // generating cookies: 
         // const options = {
@@ -170,7 +173,10 @@ module.exports.loginUser = async (req, res) => {
             // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
             // console.log(providedOTP)
-            const otpDoc = new OTP({ otpCode: providedOTP });
+            const otpDoc = new OTP({
+                userId: user.id,
+                otpCode: providedOTP
+            });
             await otpDoc.save();
 
             user.otp = otpDoc._id;
@@ -181,7 +187,7 @@ module.exports.loginUser = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
-                token
+                // token
             })
         }
         else {
@@ -206,8 +212,10 @@ module.exports.loginUser = async (req, res) => {
 }
 
 
+// VERIFY OTP:
 module.exports.verifyOTP = async (req, res) => {
     try {
+        // const { id } = req.params;
         const { otp } = req.body;
 
         if (!otp) {
@@ -218,29 +226,23 @@ module.exports.verifyOTP = async (req, res) => {
         }
 
         const user = await User.findById(req.user._id).populate('otp');
-
-
-        if (!user || !user.otp || user.otp.otpCode !== otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect OTP"
-            });
-        }
+        // const user = await User.findById(id)
 
         // Check OTP expiration (optional step)
         const otpExpiration = new Date(user.otp.createdAt);
         otpExpiration.setMinutes(otpExpiration.getMinutes() + 2); // OTP expires after 2 minutes
 
         if (otpExpiration < new Date()) {
-            // OTP expired
-            await User.updateOne(
-                { _id: user._id },
-                { $unset: { otp: 1 } } // Unset OTP field
-            );
-
             return res.status(400).json({
                 success: false,
                 message: "Expired OTP"
+            });
+        }
+
+        if (!user.otp || user.otp.otpCode !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect OTP"
             });
         }
 
@@ -251,7 +253,7 @@ module.exports.verifyOTP = async (req, res) => {
         );
         await OTP.deleteOne({ _id: user.otp._id });
 
-
+        const token = await generateToken(user);
         const options = {
             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
             httpOnly: true,
@@ -259,9 +261,10 @@ module.exports.verifyOTP = async (req, res) => {
 
         return res.status(200).cookie("cookie", user.token, options).json({
             success: true,
-            token: user.token,
+            token,
             user,
         });
+
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -319,7 +322,7 @@ module.exports.editProfile = async (req, res) => {
 
             const id = req.user;
 
-            const { firstName, lastName, workEmail, phoneNo, businessName, presentAddress, permanentAddress, city, postalCode, country } = req.body;
+            const { firstName, lastName, workEmail, phoneNo, username, presentAddress, permanentAddress, city, postalCode, country } = req.body;
 
             // finding the user:
             const user = await User.findById(id);
@@ -332,7 +335,7 @@ module.exports.editProfile = async (req, res) => {
             // updating profile if details are provided: 
             if (firstName) user.firstName = firstName;
             if (lastName) user.lastName = lastName;
-            if (businessName) user.businessName = businessName;
+            if (username) user.username = username;
             if (workEmail) user.workEmail = workEmail;
             if (phoneNo) user.phoneNo = phoneNo;
             if (presentAddress) user.presentAddress = presentAddress;
@@ -409,11 +412,11 @@ module.exports.changePassword = async (req, res) => {
     }
 }
 
-
+// ENABLE TWO FACTOR: 
 module.exports.enableTwoFactor = async (req, res) => {
     try {
         const { twoFactor } = req.query;
-        console.log(twoFactor)
+        // console.log(twoFactor)
         await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
         return res.status(200).json({
             success: true,
@@ -425,6 +428,31 @@ module.exports.enableTwoFactor = async (req, res) => {
             error: error.message
         })
     }
+}
+
+
+// cron job:
+module.exports.cronJob = async (req, res) => {
+    // cron.schedule("* * * * * *", () => {
+    //     console.log("running");
+    // })       // every second
+
+    // cron.schedule("*/4 * * * * *", () => {
+    //     console.log("running");
+    // })       // every 4 sec
+
+    const { workEmail } = req.body;
+
+    cron.schedule(
+        "*/3 * * * *",
+        async function () {
+            await sendMail(
+                workEmail,
+                "Testing cron jobs",
+                "Hello... 3"
+            )
+        }
+    )
 }
 
 
@@ -473,3 +501,28 @@ module.exports.uploadProfilePicture = async (req, res) => {
     })
 }
 
+
+const generateToken = async (user) => {
+    try {
+        if (!user || !user._id || !user.workEmail || !user.role) {
+            throw new Error('User object is invalid or missing required properties');
+        }
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+                workEmail: user.workEmail,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "2h",
+            }
+        );
+
+        return token;
+    } catch (err) {
+        console.error('Error generating JWT token:', err);
+        return null; // or throw the error as needed
+    }
+}

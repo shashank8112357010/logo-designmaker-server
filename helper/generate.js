@@ -21,9 +21,9 @@ const generateCustomId = async (type) => {
     return customId;
 };
 
-// generating otp for password change:
+// generating otp for password change: (4 digit OTP)
 const generateOTP = async () => {
-    return crypto.randomInt(100000, 999999).toString();
+    return crypto.randomInt(1000, 9999).toString();
 }
 
 // sending message for otp:

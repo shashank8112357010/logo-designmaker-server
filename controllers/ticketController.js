@@ -8,15 +8,13 @@ module.exports.createTicket = async (req, res) => {
         const customId = await generateCustomId('Ticket');
 
         // creating a new ticket 
-        const newTicket = new Ticket({
+        const ticket = await Ticket.create({
             _id: customId,
             title,
             ticketType,
             priorityStatus,
             ticketBody,
-        });
-
-        const ticket = await newTicket.save();
+        })
 
         return res.status(201).json({
             success: true,
@@ -46,7 +44,6 @@ module.exports.getAllTickets = async (req, res) => {
         })
     }
 }
-
 
 // Ticket reply:
 module.exports.reply = async (req, res) => {
