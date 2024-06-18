@@ -1,3 +1,4 @@
+// Sending email using bull and redis: 
 const Queue = require('bull');
 const nodemailer = require("nodemailer");
 

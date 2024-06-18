@@ -1,9 +1,4 @@
 const ticketModel = require('../models/ticketModel');
-const twilio = require("twilio")
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = twilio(accountSid, authToken);
-const crypto = require("crypto")
 
 
 // creating id for tickets: 
@@ -23,7 +18,9 @@ const generateCustomId = async (type) => {
 
 // generating otp for password change: (4 digit OTP)
 const generateOTP = async () => {
-    return crypto.randomInt(1000, 9999).toString();
+    const code = Math.floor(1000 + Math.random() * 9000);
+    return code;
+
 }
 
 // sending message for otp:
