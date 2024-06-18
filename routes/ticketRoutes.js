@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { createTicket, getAllTickets, getTicketById, updateTicket, deleteTicket, reply, closeTicket, searchTicket } = require("../controllers/ticketController");
+const { createTicket, getAllTickets, getTicketById, updateTicket, deleteTicket, reply, closeTicket, searchTicket, openTicket } = require("../controllers/ticketController");
 const authenticate = require("../middlewares/authentication");
 const authorize = require("../middlewares/authorization");
 
@@ -9,7 +9,10 @@ const authorize = require("../middlewares/authorization");
 router.post("/createTicket", authenticate, createTicket)
 
 // getting all tickets: 
-router.get("/getAll", authenticate, authorize("admin"), getAllTickets);
+router.get("/getAll/:id", authenticate, getAllTickets);
+
+// open a ticket: 
+router.get("/openTicket/:id", authenticate, openTicket);
 
 // Reply to ticket: 
 router.post("/reply", authenticate, reply);
@@ -18,7 +21,7 @@ router.post("/reply", authenticate, reply);
 router.get("/searchTicket", authenticate, searchTicket);
 
 // Close ticket: 
-router.put("/close/:id", authenticate, authorize('admin'), closeTicket);
+router.put("/close/:id", authenticate, closeTicket);
 
 
 

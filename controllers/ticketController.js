@@ -1,15 +1,27 @@
 const { generateCustomId } = require("../helper/generate");
 const Ticket = require("../models/ticketModel");
+const User = require("../models/userModel")
 
 // Creating a ticket: 
 module.exports.createTicket = async (req, res) => {
     try {
         const { title, ticketType, priorityStatus, ticketBody } = req.body;
+        // getting user id:
+        const userId = req.user.id;
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User id is required"
+            })
+        }
+
+        // creating ticket id: 
         const customId = await generateCustomId('Ticket');
 
         // creating a new ticket 
         const ticket = await Ticket.create({
             _id: customId,
+            userId,
             title,
             ticketType,
             priorityStatus,
@@ -29,15 +41,39 @@ module.exports.createTicket = async (req, res) => {
     }
 }
 
-// Get All Tickets: (accessible by admin) 
+// Get All Tickets:  
 module.exports.getAllTickets = async (req, res) => {
     try {
-        
-        const tickets = await Ticket.find();
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found",
+            })
+        }
+
+        if (user.role === "admin") {
+            const tickets = await Ticket.find();
+            return res.status(200).json({
+                success: true,
+                tickets
+            })
+        }
+
+        // when role is "user":
+        const tickets = await Ticket.find({ userId: id })
+        if (!tickets) {
+            return res.status(400).json({
+                success: false,
+                message: "No tickets found for the user"
+            })
+        }
         return res.status(200).json({
             success: true,
             tickets
-        })
+        });
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -45,6 +81,34 @@ module.exports.getAllTickets = async (req, res) => {
         })
     }
 }
+
+
+// OPEN TICKET: 
+module.exports.openTicket = async (req, res) => {
+    try {
+        // getting ticket id from params to open a particular ticket:
+        const { id } = req.params;
+        const ticket = await Ticket.findById(id);
+
+        if (!ticket) {
+            return res.status(400).json({
+                success: false,
+                message: "Ticket not found"
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            ticket
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
 
 // Ticket reply:
 module.exports.reply = async (req, res) => {
@@ -57,7 +121,7 @@ module.exports.reply = async (req, res) => {
             })
         }
 
-        const userId = req.user;
+        const userId = req.user.id;
         // const customId = await generateCustomId('Reply');
 
         const ticket = await Ticket.findById(ticketNumber);

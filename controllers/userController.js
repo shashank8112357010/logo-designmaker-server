@@ -4,7 +4,7 @@ const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const upload = require("../middlewares/multer");
-const { sendMail } = require("../helper/sendMailQueue");
+const { sendMail, sendOTPMail } = require("../helper/sendMailQueue");
 const { generateOTP, sendOTP } = require("../helper/generate");
 const emailQueue = require("../helper/emailQueue");
 const OTP = require("../models/otpModel")
@@ -154,7 +154,7 @@ module.exports.loginUser = async (req, res) => {
         }
 
         // correct password:
-        const { phoneNo, role } = user
+        // const { phoneNo, role } = user
 
         // Setting Session Data: 
         // req.session.isLoggedIn = true;
@@ -168,11 +168,11 @@ module.exports.loginUser = async (req, res) => {
         //     expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         //     httpOnly: true,
         // };
-        console.log("Reaching outside", user)
+        // console.log("Reaching outside", user)
 
         if (user.twoFactor === true) {
 
-            console.log("Reachung iniside")
+            // console.log("Reachung iniside")
             // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
             // console.log(providedOTP)
@@ -185,7 +185,12 @@ module.exports.loginUser = async (req, res) => {
             user.otp = otpDoc._id;
             await user.save();
             // sending otp:
-            await sendOTP(phoneNo, providedOTP);
+            // await sendOTP(phoneNo, providedOTP);
+            await sendOTPMail(
+                workEmail,
+                "OTP for Login",
+                `The OTP for login is: ${providedOTP}`
+            )
 
             return res.status(200).json({
                 success: true,
@@ -229,7 +234,12 @@ module.exports.verifyOTP = async (req, res) => {
         }
 
         const user = await User.findById(req.user._id).populate('otp');
-        // const user = await User.findById(id)
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
 
         // Check OTP expiration (optional step)
         const otpExpiration = new Date(user.otp.createdAt);
@@ -265,7 +275,13 @@ module.exports.verifyOTP = async (req, res) => {
         return res.status(200).cookie("cookie", user.token, options).json({
             success: true,
             token,
-            user,
+            user: {
+                workEmail: user.workEmail,
+                phoneNo: user.phoneNo,
+                profileImg: user.profileImg,
+                role: user.role,
+                username: user.username
+            }
         });
 
     } catch (error) {
@@ -419,10 +435,10 @@ module.exports.changePassword = async (req, res) => {
 module.exports.enableTwoFactor = async (req, res) => {
     try {
         const { twoFactor } = req.query;
-        
-        console.log(req.user ,"req.user-------");
-        const userDoc = await User.findByIdAndUpdate(req.user.id, { twoFactor  }, { new: true })
-        console.log(userDoc , "userDoc")
+
+        // console.log(req.user, "req.user-------");
+        const userDoc = await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
+        // console.log(userDoc, "userDoc")
         // await userDoc.save()
         return res.status(200).json({
             success: true,
@@ -448,6 +464,12 @@ module.exports.cronJob = async (req, res) => {
     // })       // every 4 sec
 
     const { workEmail } = req.body;
+    if (!workEmail) {
+        return res.status(400).json({
+            success: false,
+            message: "Work Email is needed"
+        })
+    }
 
     cron.schedule(
         "*/3 * * * * *",
@@ -459,6 +481,11 @@ module.exports.cronJob = async (req, res) => {
             )
         }
     )
+
+    return res.status(200).json({
+        success: true,
+        message: "Email sent successfully"
+    })
 }
 
 

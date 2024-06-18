@@ -12,7 +12,7 @@ module.exports = async function (req, res, next) {
     // }
 
     const userToken = req.headers.authorization;
-
+    // console.log(req.headers)
     if (!userToken) {
         return res
             .status(401)

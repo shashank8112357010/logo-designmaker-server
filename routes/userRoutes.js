@@ -22,7 +22,7 @@ router.post("/login", validate(loginValidator), loginUser);
 // Verify OTP: 
 router.post("/verifyOTP", (req, res, next) => {
     // Check if user is authenticated via session
-    if (req.session /*&& req.session.isLoggedIn*/) {
+    if (req.session) {
         req.user = req.session.user;
         return next();
     } else {
@@ -33,7 +33,6 @@ router.post("/verifyOTP", (req, res, next) => {
             })
     }
 }, verifyOTP);
-// router.post("/verifyOTP/:id", authenticate, verifyOTP);
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
 // change password:

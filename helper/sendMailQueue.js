@@ -33,7 +33,7 @@ emailQueue.process(async (job) => {
 
 async function sendMail(to, subject, text) {
 
-    console.log(to , "to------");
+    console.log(to, "to------");
     let mailOptions = {
         from: process.env.EMAIL,
         to,
@@ -51,4 +51,21 @@ async function sendMail(to, subject, text) {
     }
 }
 
-module.exports = { emailQueue, sendMail };
+const sendOTPMail = async (to, subject, text) => {
+    let mailOptions = {
+        from: process.env.EMAIL,
+        to,
+        subject,
+        text,
+    }
+
+    try {
+        let info = await transporter.sendMail(mailOptions);
+        return info;
+    } catch (error) {
+        console.log("Error sending mail: ", error);
+        throw error;
+    }
+}
+
+module.exports = { emailQueue, sendMail, sendOTPMail };
