@@ -43,12 +43,6 @@ module.exports.register = async (req, res) => {
         //     "Welcome to Logo Design Maker. You have been registered successfully!!"     // message to be sent
         // )
 
-        // await agenda.schedule('in 1 second', 'sendRegisterMail', {
-        //     toSender: workEmail,
-        //     emailSubject: "Welcome",
-        //     messageContent: "Welcome to Logo Design Maker. You have been registered successfully!!"
-        // })
-
         await agenda.schedule('in 1 second', 'sendRegisterMail', {
             toSender: workEmail,
             emailSubject: "Welcome to Logo Design Maker",
