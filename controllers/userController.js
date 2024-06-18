@@ -9,7 +9,7 @@ const { generateOTP, sendOTP } = require("../helper/generate");
 const emailQueue = require("../helper/emailQueue");
 const OTP = require("../models/otpModel")
 const cron = require("node-cron");
-const agenda = require("../config/agendaConnection");
+const agenda = require("../helper/sendEmail");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -43,11 +43,17 @@ module.exports.register = async (req, res) => {
         //     "Welcome to Logo Design Maker. You have been registered successfully!!"     // message to be sent
         // )
 
+        // await agenda.schedule('in 1 second', 'sendRegisterMail', {
+        //     toSender: workEmail,
+        //     emailSubject: "Welcome",
+        //     messageContent: "Welcome to Logo Design Maker. You have been registered successfully!!"
+        // })
+
         await agenda.schedule('in 1 second', 'sendRegisterMail', {
             toSender: workEmail,
-            emailSubject: "Welcome",
-            messageContent: "Welcome to Logo Design Maker. You have been registered successfully!!"
-        })
+            emailSubject: "Welcome to Logo Design Maker",
+            messageContent: `Welcome to Logo Design Maker. You have been registered successfully!! (3...). Your work email is: ${workEmail} and phone number: ${phoneNo}. Thank you for registering`
+        });
 
         // generating token:
         // const token = jwt.sign(
