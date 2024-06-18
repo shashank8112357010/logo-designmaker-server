@@ -32,6 +32,8 @@ emailQueue.process(async (job) => {
 });
 
 async function sendMail(to, subject, text) {
+
+    console.log(to , "to------");
     let mailOptions = {
         from: process.env.EMAIL,
         to,

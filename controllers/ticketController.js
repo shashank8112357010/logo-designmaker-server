@@ -32,6 +32,7 @@ module.exports.createTicket = async (req, res) => {
 // Get All Tickets: (accessible by admin) 
 module.exports.getAllTickets = async (req, res) => {
     try {
+        
         const tickets = await Ticket.find();
         return res.status(200).json({
             success: true,

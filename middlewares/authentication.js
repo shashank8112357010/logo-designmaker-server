@@ -6,10 +6,10 @@ module.exports = async function (req, res, next) {
     // const token = req.header('x-auth-token');
 
     // Check if user is authenticated via session
-    if (req.session /*&& req.session.isLoggedIn*/) {
-        req.user = req.session.user;
-        return next();
-    }
+    // if (req.session /*&& req.session.isLoggedIn*/) {
+    //     req.user = req.session.user;
+    //     return next();
+    // }
 
     const userToken = req.headers.authorization;
 

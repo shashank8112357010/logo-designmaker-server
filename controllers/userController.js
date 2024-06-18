@@ -168,8 +168,11 @@ module.exports.loginUser = async (req, res) => {
         //     expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         //     httpOnly: true,
         // };
+        console.log("Reaching outside", user)
 
         if (user.twoFactor === true) {
+
+            console.log("Reachung iniside")
             // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
             // console.log(providedOTP)
@@ -416,8 +419,11 @@ module.exports.changePassword = async (req, res) => {
 module.exports.enableTwoFactor = async (req, res) => {
     try {
         const { twoFactor } = req.query;
-        // console.log(twoFactor)
-        await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
+        
+        console.log(req.user ,"req.user-------");
+        const userDoc = await User.findByIdAndUpdate(req.user.id, { twoFactor  }, { new: true })
+        console.log(userDoc , "userDoc")
+        // await userDoc.save()
         return res.status(200).json({
             success: true,
             message: `Two factor authentication ${twoFactor == 'true' ? 'enabled' : 'disabled'}`
@@ -444,7 +450,7 @@ module.exports.cronJob = async (req, res) => {
     const { workEmail } = req.body;
 
     cron.schedule(
-        "*/3 * * * *",
+        "*/3 * * * * *",
         async function () {
             await sendMail(
                 workEmail,

@@ -20,7 +20,19 @@ router.post("/requirements/:id", authenticate, validate(requirementsValidator), 
 // Login:
 router.post("/login", validate(loginValidator), loginUser);
 // Verify OTP: 
-router.post("/verifyOTP", authenticate, verifyOTP);
+router.post("/verifyOTP", (req, res, next) => {
+    // Check if user is authenticated via session
+    if (req.session /*&& req.session.isLoggedIn*/) {
+        req.user = req.session.user;
+        return next();
+    } else {
+        return res
+            .status(401)
+            .json({
+                message: "Session Expired"
+            })
+    }
+}, verifyOTP);
 // router.post("/verifyOTP/:id", authenticate, verifyOTP);
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
