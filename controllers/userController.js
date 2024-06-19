@@ -4,7 +4,7 @@ const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const upload = require("../middlewares/multer");
-const { sendMail, sendOTPMail } = require("../helper/sendMailQueue");
+// const { sendMail, sendOTPMail } = require("../helper/sendMailQueue");
 const { generateOTP, sendOTP } = require("../helper/generate");
 const emailQueue = require("../helper/emailQueue");
 const OTP = require("../models/otpModel")
@@ -193,11 +193,17 @@ module.exports.loginUser = async (req, res) => {
             await user.save();
             // sending otp:
             // await sendOTP(phoneNo, providedOTP);
-            await sendOTPMail(
-                workEmail,
-                "OTP for Login",
-                `The OTP for login is: ${providedOTP}`
-            )
+            // await sendOTPMail(
+            //     workEmail,
+            //     "OTP for Login",
+            //     `The OTP for login is: ${providedOTP}`
+            // )
+
+            await agenda.schedule('in 1 second', 'sendOTPMail', {
+                toSender: workEmail,
+                emailSubject: "OTP",
+                messageContent: `The OTP for login is ${providedOTP}`
+            });
 
             return res.status(200).json({
                 success: true,
@@ -230,7 +236,12 @@ module.exports.loginUser = async (req, res) => {
 // VERIFY OTP:
 module.exports.verifyOTP = async (req, res) => {
     try {
-        // const { id } = req.params;
+        if (!req.user || !req.user._id) {
+            return res.status(400).json({
+                success: false,
+                message: "User is not authenticated"
+            });
+        }
         const { otp } = req.body;
 
         if (!otp) {
@@ -248,6 +259,14 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
+        // if user.otp is not found:
+        if (!user.otp) {
+            return res.status(404).json({
+                success: false,
+                message: "OTP not found"
+            })
+        }
+
         // Check OTP expiration (optional step)
         const otpExpiration = new Date(user.otp.createdAt);
         otpExpiration.setMinutes(otpExpiration.getMinutes() + 2); // OTP expires after 2 minutes
@@ -259,7 +278,7 @@ module.exports.verifyOTP = async (req, res) => {
             });
         }
 
-        if (!user.otp || user.otp.otpCode !== otp) {
+        if (user.otp.otpCode !== otp) {
             return res.status(400).json({
                 success: false,
                 message: "Incorrect OTP"
@@ -271,7 +290,7 @@ module.exports.verifyOTP = async (req, res) => {
             { _id: user._id },
             { $unset: { otp: 1 } } // Unset OTP field
         );
-        await OTP.deleteOne({ _id: user.otp._id });
+        // await OTP.deleteOne({ _id: user.otp._id });
 
         const token = await generateToken(user);
         const options = {

@@ -15,24 +15,43 @@ const agenda = new Agenda({
     }
 });
 
-// Define the job handler
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+    },
+    tls: {
+        rejectUnauthorized: false,
+    }
+})
+
+// Define the job handler (registration mail):
 agenda.define('sendRegisterMail', async (job) => {
     const { toSender, emailSubject, messageContent } = job.attrs.data;
 
     try {
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL,
-                pass: process.env.PASSWORD,
-            },
-            tls: {
-                rejectUnauthorized: false,
-            }
-        });
+        const message = {
+            from: process.env.EMAIL,
+            to: toSender,
+            subject: emailSubject,
+            text: messageContent,
+        };
+        await transporter.sendMail(message);
+        console.log("Email for registration sent successfully");
+    } catch (error) {
+        console.error('Error sending registration email:', error);
+        throw new Error("Email could not be sent");
+    }
+});
 
+// Defining function to send otp: 
+agenda.define('sendOTPMail', async (job) => {
+    const { toSender, emailSubject, messageContent } = job.attrs.data;
+
+    try {
         const message = {
             from: process.env.EMAIL,
             to: toSender,
@@ -41,12 +60,12 @@ agenda.define('sendRegisterMail', async (job) => {
         };
 
         await transporter.sendMail(message);
-        console.log("Email sent successfully");
+        console.log("Email for OTP sent successfully");
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Error sending OTP email:', error);
         throw new Error("Email could not be sent");
     }
-});
+})
 
 // Event handlers for Agenda
 agenda.on('ready', () => {
