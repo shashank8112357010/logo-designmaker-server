@@ -44,7 +44,7 @@ module.exports.createTicket = async (req, res) => {
 // Get All Tickets:  
 module.exports.getAllTickets = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.user;
         const user = await User.findById(id);
 
         if (!user) {

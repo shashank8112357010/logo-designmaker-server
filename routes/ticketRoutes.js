@@ -9,7 +9,7 @@ const authorize = require("../middlewares/authorization");
 router.post("/createTicket", authenticate, createTicket)
 
 // getting all tickets: 
-router.get("/getAll/:id", authenticate, getAllTickets);
+router.get("/getAll", authenticate, getAllTickets);
 
 // open a ticket: 
 router.get("/openTicket/:id", authenticate, openTicket);
