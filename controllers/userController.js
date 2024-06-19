@@ -488,7 +488,6 @@ module.exports.cronJob = async (req, res) => {
     // cron.schedule("*/4 * * * * *", () => {
     //     console.log("running");
     // })       // every 4 sec
-
     const { workEmail } = req.body;
     if (!workEmail) {
         return res.status(400).json({
@@ -496,7 +495,6 @@ module.exports.cronJob = async (req, res) => {
             message: "Work Email is needed"
         })
     }
-
     cron.schedule(
         "*/3 * * * * *",
         async function () {
@@ -507,11 +505,51 @@ module.exports.cronJob = async (req, res) => {
             )
         }
     )
-
     return res.status(200).json({
         success: true,
         message: "Email sent successfully"
     })
+}
+
+
+// // sending greetings mail: (morning)
+module.exports.sendGreetingsMorning = async (req, res) => {
+    try {
+        await agenda.every('00 05 * * *', 'greetingMail_morning', {
+            emailSubject: "GREETINGS",
+        }, { timezone: 'Asia/Kolkata' });
+
+        return res.status(200).json({
+            success: true,
+            message: "Morning Greeting emails scheduled successfully"
+        });
+    } catch (error) {
+        console.error('Error scheduling morning greeting emails:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Error scheduling greeting emails"
+        });
+    }
+}
+
+// sending greetings mail (evening)
+module.exports.sendGreetingsEvening = async (req, res) => {
+    try {
+        await agenda.every('00 19 * * *', 'greetingMail_evening', {
+            emailSubject: "GREETINGS",
+        }, { timezone: 'Asia/Kolkata' });
+
+        return res.status(200).json({
+            success: true,
+            message: "Evening greeting emails scheduled successfully"
+        });
+    } catch (error) {
+        console.error('Error scheduling evening greeting emails:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Error scheduling greeting emails"
+        });
+    }
 }
 
 

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, cronJob } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, cronJob, sendGreetings, sendGreetings2, sendGreetings1, sendGreetingsMorning, sendGreetingsEvening } = require("../controllers/userController");
 const upload = require("../middlewares/multer");
 const { registerValidator, loginValidator, requirementsValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
@@ -50,6 +50,11 @@ router.post("/uploadprofile", authenticate, uploadProfilePicture)
 
 // cron job: 
 router.post("/cronJob", cronJob);
+
+// send greeting:
+router.get("/sendGreetingMorning", sendGreetingsMorning);
+router.get("/sendGreetingEvening", sendGreetingsEvening);
+
 
 
 // Google OAuth routes: 
