@@ -155,17 +155,35 @@ module.exports.loginUser = async (req, res) => {
             })
         }
         else {
+            // jwt token:
             const token = await generateToken(user);
-            const options = {
-                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+            // generating refresh token:
+            const refreshToken = await generateRefreshToken(user);
+            const tokenOptions = {
+                expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
                 httpOnly: true,
             };
-            return res.status(200).cookie("cookie", token, options).json({
-                success: true,
-                message: "Logged in successfully",
-                token,
+            const refreshTokenOptions = {
+                expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+                httpOnly: true,
+            };
+            // return res.status(200).cookie("cookie", token, options).json({
+            //     success: true,
+            //     message: "Logged in successfully",
+            //     token,
 
-            });
+            // });
+
+            res.cookie("token", token, tokenOptions);
+            res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+
+            return res.status(200).json({
+                success: true,
+                message: "Logged in successfully!!",
+                token,
+                refreshToken
+            })
+
         }
     } catch (error) {
         return res.status(500).json({
@@ -234,14 +252,24 @@ module.exports.verifyOTP = async (req, res) => {
         // await OTP.deleteOne({ _id: user.otp._id });
 
         const token = await generateToken(user);
-        const options = {
-            expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        // generating refresh token:
+        const refreshToken = await generateRefreshToken(user);
+        const tokenOptions = {
+            expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
+            httpOnly: true,
+        };
+        const refreshTokenOptions = {
+            expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
             httpOnly: true,
         };
 
-        return res.status(200).cookie("cookie", token, options).json({
+        res.cookie("token", token, tokenOptions);
+        res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+
+        return res.status(200).json({
             success: true,
             token,
+            refreshToken,
             user: {
                 workEmail: user.workEmail,
                 phoneNo: user.phoneNo,
@@ -491,22 +519,36 @@ module.exports.uploadProfilePicture = async (req, res) => {
 
 // Function to generate token for user: 
 const generateToken = async (user) => {
-    try {
-        const token = jwt.sign(
-            {
-                id: user._id,
-                workEmail: user.workEmail,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "2h",
-            }
-        );
+    // try {
+    const token = jwt.sign(
+        {
+            id: user._id,
+            workEmail: user.workEmail,
+            role: user.role
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "2h",
+        }
+    );
 
-        return token;
-    } catch (err) {
-        console.error('Error generating JWT token:', err);
-        return null;
-    }
+    return token;
+    // } catch (err) {
+    //     console.error('Error generating JWT token:', err);
+    //     return null;
+    // }
+}
+
+const generateRefreshToken = async (user) => {
+    const refreshToken = jwt.sign({
+        id: user._id,
+        workEmail: user.workEmail,
+        role: user.role
+    },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "5d",
+        });
+
+    return refreshToken;
 }
