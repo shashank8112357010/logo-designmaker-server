@@ -156,11 +156,16 @@ module.exports.loginUser = async (req, res) => {
         }
         else {
             const token = await generateToken(user);
-            return res.status(200).json({
+            const options = {
+                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                httpOnly: true,
+            };
+            return res.status(200).cookie("cookie", token, options).json({
                 success: true,
                 message: "Logged in successfully",
                 token,
-            })
+
+            });
         }
     } catch (error) {
         return res.status(500).json({
@@ -234,7 +239,7 @@ module.exports.verifyOTP = async (req, res) => {
             httpOnly: true,
         };
 
-        return res.status(200).cookie("cookie", user.token, options).json({
+        return res.status(200).cookie("cookie", token, options).json({
             success: true,
             token,
             user: {
@@ -487,10 +492,6 @@ module.exports.uploadProfilePicture = async (req, res) => {
 // Function to generate token for user: 
 const generateToken = async (user) => {
     try {
-        if (!user || !user._id || !user.workEmail || !user.role) {
-            throw new Error('User object is invalid or missing required properties');
-        }
-
         const token = jwt.sign(
             {
                 id: user._id,
