@@ -82,9 +82,8 @@ module.exports.getAllTickets = async (req, res) => {
     }
 }
 
-
-// OPEN TICKET: 
-module.exports.openTicket = async (req, res) => {
+// OPEN TICKET: (Get single ticket by id):
+module.exports.getTicketById = async (req, res) => {
     try {
         // getting ticket id from params to open a particular ticket:
         const { id } = req.params;
@@ -109,7 +108,6 @@ module.exports.openTicket = async (req, res) => {
     }
 }
 
-
 // Ticket reply:
 module.exports.reply = async (req, res) => {
     try {
@@ -123,7 +121,6 @@ module.exports.reply = async (req, res) => {
 
         const userId = req.user.id;
         // const customId = await generateCustomId('Reply');
-
         const ticket = await Ticket.findById(ticketNumber);
 
         if (!ticket) {
@@ -164,12 +161,10 @@ module.exports.reply = async (req, res) => {
     }
 }
 
-
 // Search a ticket: 
 module.exports.searchTicket = async (req, res) => {
     try {
         const { ticketTitle, ticketNo } = req.query;
-
         const searchQuery = {};
 
         if (ticketTitle) {
@@ -180,7 +175,6 @@ module.exports.searchTicket = async (req, res) => {
         }
 
         const tickets = await Ticket.find(searchQuery);
-
         if (!tickets.length) {
             return res.status(200).json({
                 success: true,
@@ -201,12 +195,10 @@ module.exports.searchTicket = async (req, res) => {
     }
 }
 
-
-// Closing a ticket: (priority status: resolved)
+// Closing a ticket: (setting priority status: resolved)
 module.exports.closeTicket = async (req, res) => {
     try {
         const ticketId = req.params.id;
-        // const ticketId = req.query;
         const ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
@@ -229,33 +221,7 @@ module.exports.closeTicket = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "status updated!!",
-            ticket          //updated with status as resolved..
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            error
-        })
-    }
-}
-
-
-
-
-// Get single ticket (by using id):
-module.exports.getTicketById = async (req, res) => {
-    try {
-        // const {id} = req.params.id;
-        // const ticket = await Ticket.findById(id)
-        const ticket = await Ticket.findById(req.params.id);
-        if (!ticket) {
-            return res.status(404).json({
-                success: false,
-                message: "Ticket not found"
-            })
-        }
-        return res.status(200).json({
-            ticket
+            ticket          // updated with status as "resolved"..
         })
     } catch (error) {
         return res.status(500).json({
@@ -288,7 +254,6 @@ module.exports.updateTicket = async (req, res) => {
         })
     }
 }
-
 
 // Delete ticket: 
 module.exports.deleteTicket = async (req, res) => {

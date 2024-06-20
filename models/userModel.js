@@ -62,14 +62,6 @@ const userSchema = mongoose.Schema({
         type: String,
     },
 
-    // otpInfo: {
-    //     otp: {
-    //         type: String,
-    //     },
-    //     expiresAt: {
-    //         type: Date,
-    //     }
-    // },
     otp: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'otpModel'

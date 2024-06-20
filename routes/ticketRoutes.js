@@ -12,7 +12,7 @@ router.post("/createTicket", authenticate, createTicket)
 router.get("/getAll", authenticate, getAllTickets);
 
 // open a ticket: 
-router.get("/openTicket/:id", authenticate, openTicket);
+router.get("/openTicket/:id", authenticate, getTicketById);
 
 // Reply to ticket: 
 router.post("/reply", authenticate, reply);
@@ -23,10 +23,6 @@ router.get("/searchTicket", authenticate, searchTicket);
 // Close ticket: 
 router.put("/close/:id", authenticate, closeTicket);
 
-
-
-// getting single ticket by ticket id: 
-router.get('/getSingleTicket/:id', authenticate, getTicketById);
 
 // update ticket: 
 router.put('/updateTicket/:id', authenticate, updateTicket);

@@ -3,22 +3,11 @@ const User = require('../models/userModel');
 
 module.exports = async function (req, res, next) {
     // Get token from request headers
-    // const token = req.header('x-auth-token');
-
-    // Check if user is authenticated via session
-    // if (req.session /*&& req.session.isLoggedIn*/) {
-    //     req.user = req.session.user;
-    //     return next();
-    // }
-
     const userToken = req.headers.authorization;
-    // console.log(req.headers)
     if (!userToken) {
-        return res
-            .status(401)
-            .json({
-                message: "Please authenticate using a token"
-            })
+        return res.status(401).json({
+            message: "Please authenticate using a token"
+        })
     }
 
     try {
@@ -26,13 +15,11 @@ module.exports = async function (req, res, next) {
         const JWT_TOKEN = token[1];
 
         // Check if token is missing
-        // if (!token)
         if (!JWT_TOKEN) {
             return res.status(401).json({
                 msg: 'No token, authorization denied'
             });
         }
-
 
         // Verify token
         const decoded = jwt.verify(JWT_TOKEN, process.env.JWT_SECRET);

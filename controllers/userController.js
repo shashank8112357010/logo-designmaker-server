@@ -1,27 +1,16 @@
-
 const User = require("../models/userModel");
 const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const upload = require("../middlewares/multer");
-// const { sendMail, sendOTPMail } = require("../helper/sendMailQueue");
-const { generateOTP, sendOTP } = require("../helper/generate");
-const emailQueue = require("../helper/emailQueue");
+const { generateOTP } = require("../helper/generate");
 const OTP = require("../models/otpModel")
-const cron = require("node-cron");
 const agenda = require("../helper/sendEmail");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
     try {
         const { workEmail, username, phoneNo, password, mailAllow, role } = req.body;
-
-        // if role of the user is not provided: 
-        // if (!role) {
-        //     return res.status(400).json({
-        //         message: "Role is required, please provide the role!!",
-        //     });
-        // }
 
         // Password encryption: 
         const enc_password = await bcrypt.hash(password, 10);
@@ -37,26 +26,12 @@ module.exports.register = async (req, res) => {
             // profile: req.file.path,
         })
 
-        // await sendMail(
-        //     workEmail,          // user email
-        //     "Welcome to Logo Design Maker",      // subject
-        //     "Welcome to Logo Design Maker. You have been registered successfully!!"     // message to be sent
-        // )
-
+        // Sending email to user when registered: 
         await agenda.schedule('in 1 second', 'sendRegisterMail', {
             toSender: workEmail,
             emailSubject: "Welcome to Logo Design Maker",
-            messageContent: `Welcome to Logo Design Maker. You have been registered successfully!! (3...). Your work email is: ${workEmail} and phone number: ${phoneNo}. Thank you for registering`
+            messageContent: `Welcome to Logo Design Maker. You have been registered successfully!! Your work email is: ${workEmail} and phone number: ${phoneNo}. Thank you for registering`
         });
-
-        // generating token:
-        // const token = jwt.sign(
-        //     {id: user._id, email},
-        //     process.env.JWT_SECRET,       // key
-        //     {
-        //         expiresIn: "2h",
-        //     }
-        // )
 
         return res.status(200).json({
             success: true,
@@ -70,20 +45,6 @@ module.exports.register = async (req, res) => {
         })
     }
 }
-
-
-// // getting indexes: 
-// // const userModel = require('./userModel'); // Import your Mongoose model
-
-// // Get the indexes for the userModel collection
-// User.collection.getIndexes((err, indexes) => {
-//     if (err) {
-//         console.error('Error getting indexes:', err);
-//     } else {
-//         console.log('Indexes for userModel collection:', indexes);
-//     }
-// });
-
 
 // Register user requirements: 
 module.exports.setUserRequirements = async (req, res) => {
@@ -118,13 +79,10 @@ module.exports.setUserRequirements = async (req, res) => {
     }
 }
 
-
 // LOGIN:
-// session (login):
 module.exports.loginUser = async (req, res) => {
     try {
         const { workEmail, password, keepLoggedIn } = req.body;
-
         if (!workEmail || !password) {
             return res.status(400).json({
                 success: false,
@@ -132,7 +90,7 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
-        // finding the user with provided mail id: 
+        // finding the user with provided workEmail : 
         const user = await User.findOne({ workEmail });
 
         // if user is not found: 
@@ -143,7 +101,7 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
-        // if boolean value keepLoggedIn is provided; update the value in DB:
+        // if boolean value keepLoggedIn is provided; update the value in DB and save:
         if (keepLoggedIn) {
             user.keepLoggedIn = keepLoggedIn
         }
@@ -161,14 +119,8 @@ module.exports.loginUser = async (req, res) => {
         }
 
         // correct password:
-        // const { phoneNo, role } = user
-
         // Setting Session Data: 
-        // req.session.isLoggedIn = true;
         req.session.user = user;
-
-        const token = await generateToken(user);
-
 
         // generating cookies: 
         // const options = {
@@ -177,12 +129,10 @@ module.exports.loginUser = async (req, res) => {
         // };
         // console.log("Reaching outside", user)
 
+        // if two factor authentication is enabled, the user will be provided with an OTP for verification:
         if (user.twoFactor === true) {
-
-            // console.log("Reachung iniside")
             // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
-            // console.log(providedOTP)
             const otpDoc = new OTP({
                 userId: user.id,
                 otpCode: providedOTP
@@ -191,14 +141,8 @@ module.exports.loginUser = async (req, res) => {
 
             user.otp = otpDoc._id;
             await user.save();
-            // sending otp:
-            // await sendOTP(phoneNo, providedOTP);
-            // await sendOTPMail(
-            //     workEmail,
-            //     "OTP for Login",
-            //     `The OTP for login is: ${providedOTP}`
-            // )
 
+            // sending otp:
             await agenda.schedule('in 1 second', 'sendOTPMail', {
                 toSender: workEmail,
                 emailSubject: "OTP",
@@ -208,22 +152,16 @@ module.exports.loginUser = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
-                // token
             })
         }
         else {
+            const token = await generateToken(user);
             return res.status(200).json({
                 success: true,
                 message: "Logged in successfully",
                 token,
             })
         }
-        // if two factor is false; directly user will log in:
-        // res.status(200).cookie("cookie", token, options).json({
-        //     success: true,
-        //     token,
-        //     user,
-        // })
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -231,7 +169,6 @@ module.exports.loginUser = async (req, res) => {
         })
     }
 }
-
 
 // VERIFY OTP:
 module.exports.verifyOTP = async (req, res) => {
@@ -243,7 +180,6 @@ module.exports.verifyOTP = async (req, res) => {
             });
         }
         const { otp } = req.body;
-
         if (!otp) {
             return res.status(400).json({
                 success: false,
@@ -269,7 +205,7 @@ module.exports.verifyOTP = async (req, res) => {
 
         // Check OTP expiration (optional step)
         const otpExpiration = new Date(user.otp.createdAt);
-        otpExpiration.setMinutes(otpExpiration.getMinutes() + 2); // OTP expires after 2 minutes
+        otpExpiration.setMinutes(otpExpiration.getMinutes() + 2);   // OTP expires after 2 minutes
 
         if (otpExpiration < new Date()) {
             return res.status(400).json({
@@ -309,7 +245,6 @@ module.exports.verifyOTP = async (req, res) => {
                 username: user.username
             }
         });
-
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -318,13 +253,10 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
-
-
 // Searching user: 
 module.exports.searchUser = async (req, res) => {
     try {
         const { email, phone } = req.query;
-
         const searchQuery = {};
 
         if (email) {
@@ -335,7 +267,6 @@ module.exports.searchUser = async (req, res) => {
         }
 
         const users = await User.find(searchQuery);
-
         if (!users) {
             return res.status(404).json({
                 success: false,
@@ -366,7 +297,6 @@ module.exports.editProfile = async (req, res) => {
             }
 
             const id = req.user;
-
             const { firstName, lastName, workEmail, phoneNo, username, presentAddress, permanentAddress, city, postalCode, country } = req.body;
 
             // finding the user:
@@ -413,19 +343,12 @@ module.exports.editProfile = async (req, res) => {
     })
 }
 
-
 // Change Password:
 module.exports.changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user;
-
-        // getting phone number of user:
-        // const phone = req.user.phoneNo;
-        // console.log(phone);
-
         const user = await User.findById(userId);
-
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -462,10 +385,8 @@ module.exports.enableTwoFactor = async (req, res) => {
     try {
         const { twoFactor } = req.query;
 
-        // console.log(req.user, "req.user-------");
         const userDoc = await User.findByIdAndUpdate(req.user.id, { twoFactor }, { new: true })
-        // console.log(userDoc, "userDoc")
-        // await userDoc.save()
+
         return res.status(200).json({
             success: true,
             message: `Two factor authentication ${twoFactor == 'true' ? 'enabled' : 'disabled'}`
@@ -478,41 +399,7 @@ module.exports.enableTwoFactor = async (req, res) => {
     }
 }
 
-
-// cron job:
-module.exports.cronJob = async (req, res) => {
-    // cron.schedule("* * * * * *", () => {
-    //     console.log("running");
-    // })       // every second
-
-    // cron.schedule("*/4 * * * * *", () => {
-    //     console.log("running");
-    // })       // every 4 sec
-    const { workEmail } = req.body;
-    if (!workEmail) {
-        return res.status(400).json({
-            success: false,
-            message: "Work Email is needed"
-        })
-    }
-    cron.schedule(
-        "*/3 * * * * *",
-        async function () {
-            await sendMail(
-                workEmail,
-                "Testing cron jobs",
-                "Hello... 3"
-            )
-        }
-    )
-    return res.status(200).json({
-        success: true,
-        message: "Email sent successfully"
-    })
-}
-
-
-// // sending greetings mail: (morning)
+// Sending greetings mail: (morning)
 module.exports.sendGreetingsMorning = async (req, res) => {
     try {
         await agenda.every('00 05 * * *', 'greetingMail_morning', {
@@ -532,7 +419,7 @@ module.exports.sendGreetingsMorning = async (req, res) => {
     }
 }
 
-// sending greetings mail (evening)
+// Sending greetings mail (evening)
 module.exports.sendGreetingsEvening = async (req, res) => {
     try {
         await agenda.every('00 19 * * *', 'greetingMail_evening', {
@@ -551,7 +438,6 @@ module.exports.sendGreetingsEvening = async (req, res) => {
         });
     }
 }
-
 
 // Upload profile pic: 
 module.exports.uploadProfilePicture = async (req, res) => {
@@ -598,7 +484,7 @@ module.exports.uploadProfilePicture = async (req, res) => {
     })
 }
 
-
+// Function to generate token for user: 
 const generateToken = async (user) => {
     try {
         if (!user || !user._id || !user.workEmail || !user.role) {
@@ -620,6 +506,6 @@ const generateToken = async (user) => {
         return token;
     } catch (err) {
         console.error('Error generating JWT token:', err);
-        return null; // or throw the error as needed
+        return null;
     }
 }

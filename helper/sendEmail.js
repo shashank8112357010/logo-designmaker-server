@@ -7,11 +7,9 @@ const path = require('path');
 const User = require("../models/userModel");
 
 const connectionString = process.env.DB_URL;
-
 if (!connectionString) {
     throw new Error('DB_URL environment variable is not set.');
 }
-
 const agenda = new Agenda({
     db: {
         address: connectionString,
@@ -35,7 +33,6 @@ const transporter = nodemailer.createTransport({
 // Define the job handler (registration mail):
 agenda.define('sendRegisterMail', async (job) => {
     const { toSender, emailSubject, messageContent } = job.attrs.data;
-
     try {
         const message = {
             from: process.env.EMAIL,
@@ -54,7 +51,6 @@ agenda.define('sendRegisterMail', async (job) => {
 // Defining function to send otp: 
 agenda.define('sendOTPMail', async (job) => {
     const { toSender, emailSubject, messageContent } = job.attrs.data;
-
     try {
         const message = {
             from: process.env.EMAIL,
@@ -129,8 +125,6 @@ agenda.define("greetingMail_evening", async (job) => {
         console.error('Error sending evening greeting email:', error);
         throw new Error("Email could not be sent");
     }
-
-    // }
 })
 
 

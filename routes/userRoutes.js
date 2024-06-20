@@ -1,24 +1,22 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, cronJob, sendGreetings, sendGreetings2, sendGreetings1, sendGreetingsMorning, sendGreetingsEvening } = require("../controllers/userController");
-const upload = require("../middlewares/multer");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
 const passport = require('passport');
-const { ensureGuest, ensureAuth } = require("../middlewares/googleAuth");
-const userModel = require("../models/userModel");
-const { sendOTP } = require("../helper/generate");
-
 
 
 // user registration: 
 router.post("/register", validate(registerValidator), register);
+
 // user requirements: 
 router.post("/requirements/:id", authenticate, validate(requirementsValidator), setUserRequirements);
+
 // Login:
 router.post("/login", validate(loginValidator), loginUser);
+
 // Verify OTP: 
 router.post("/verifyOTP", (req, res, next) => {
     // Check if user is authenticated via session
@@ -26,35 +24,24 @@ router.post("/verifyOTP", (req, res, next) => {
         req.user = req.session.user;
         return next();
     } else {
-        return res
-            .status(401)
-            .json({
-                message: "Session Expired"
-            })
+        return res.status(401).json({
+            message: "Session Expired"
+        })
     }
 }, verifyOTP);
+
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
+
 // change password:
 router.put("/changePassword", authenticate, changePassword);
+
 // twoFactor: 
 router.post("/enableTwoFactor", authenticate, enableTwoFactor);
-
-
-
-// search users: 
-router.get("/search", searchUser);
-
-// upload profile picture:
-router.post("/uploadprofile", authenticate, uploadProfilePicture)
-
-// cron job: 
-router.post("/cronJob", cronJob);
 
 // send greeting:
 router.get("/sendGreetingMorning", sendGreetingsMorning);
 router.get("/sendGreetingEvening", sendGreetingsEvening);
-
 
 
 // Google OAuth routes: 
@@ -70,21 +57,17 @@ router.get('/auth/google/callback', passport.authenticate('google', { failureRed
     }
 )
 
+// search users: 
+router.get("/search", searchUser);
+// upload profile picture:
+router.post("/uploadprofile", authenticate, uploadProfilePicture)
+
+
+
 // for logout: 
 router.get("/logout", (req, res) => {
     req.logout()
     res.redirect('/')
 })
-
-
-// routes/index.js:
-router.get("/", ensureGuest, (req, res) => {
-    res.render('login');
-})
-
-router.get("/log", ensureAuth, async (req, res) => {
-    res.render('index', { userinfo: req.user })
-})
-
 
 module.exports = router;

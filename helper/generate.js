@@ -23,16 +23,4 @@ const generateOTP = async () => {
 
 }
 
-// sending message for otp:
-// const sendOTP = async (phone, otp) => {
-//     return client.messages.create({
-//         body: `Your OTP code is ${otp}`,
-//         from: process.env.TWILIO_PHONE_NUMBER,
-//         to: `+91${phone}`
-//     })
-// }
-
-
-
-
 module.exports = { generateCustomId, generateOTP };

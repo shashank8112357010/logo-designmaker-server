@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const generateCustomId = require("../helper/generate");
 const Schema = mongoose.Schema;
 
 const ticketSchema = new mongoose.Schema({
@@ -7,7 +6,6 @@ const ticketSchema = new mongoose.Schema({
         type: String,
     },
     userId: {
-        // type: String,
         type: Schema.Types.ObjectId,
         ref: "userModel",
     },
