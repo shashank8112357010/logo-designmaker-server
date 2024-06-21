@@ -86,3 +86,23 @@ module.exports.loginValidator = [
         .notEmpty().withMessage("Please enter a password")
         .isString().withMessage("Please enter a valid password")
 ]
+
+module.exports.resetValidator = [
+    body("newPassword")
+        .notEmpty().withMessage("Please enter a password")
+        // .isString().withMessage("Please enter a valid password")
+        .matches(/[a-z]/).withMessage("Must contain one lowercase letter")
+        .matches(/[0-9]/).withMessage("Must contain one number")
+        .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
+        .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
+        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
+
+    body("confirmPassword")
+        .notEmpty().withMessage("Please enter a password")
+        // .isString().withMessage("Please enter a valid password")
+        .matches(/[a-z]/).withMessage("Must contain one lowercase letter")
+        .matches(/[0-9]/).withMessage("Must contain one number")
+        .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
+        .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
+        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
+]

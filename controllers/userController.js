@@ -7,6 +7,7 @@ const { generateOTP } = require("../helper/generate");
 const OTP = require("../models/otpModel")
 const agenda = require("../helper/sendEmail");
 const Token = require("../models/tokenModel");
+const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -435,13 +436,16 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
         });
         await tokenDoc.save();
 
-        const resetLink = `http://localhost:4000/api/dashboard/resetPassword?resetToken=${resetToken}`;
+        const resetLink = `http://localhost:4000/api/dashboard/resetPassword/${resetToken}`;
+
+        const htmlToSend = resetPasswordTemplate(user.username, resetLink);
 
         // if user is found: 
         await agenda.schedule('in 1 second', 'sendResetPasswordLink', {
             toSender: workEmail,
             emailSubject: "Password Reset Link",
-            messageContent: `The link for your password  reset is: ${resetLink}`
+            // messageContent: `The link for your password  reset is: ${resetLink}`
+            htmlToSend
         });
 
         return res.status(200).json({
@@ -461,7 +465,8 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
 // setting new password: 
 module.exports.resetPassword = async (req, res) => {
     try {
-        const { resetToken, newPassword, confirmPassword } = req.body;
+        const { resetToken } = req.params;
+        const { newPassword, confirmPassword } = req.body;
 
         if (newPassword != confirmPassword) {
             return res.status(400).json({
@@ -472,8 +477,11 @@ module.exports.resetPassword = async (req, res) => {
 
         const tokenDoc = await Token.findOne({ token: resetToken });
 
+        const tokenExp = new Date(tokenDoc.createdAt)
+        tokenExp.setMinutes(tokenExp.getMinutes() + 5);
+
         // Check if token exists
-        if (!tokenDoc) {
+        if (!tokenDoc || tokenExp < new Date()) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid or expired token',

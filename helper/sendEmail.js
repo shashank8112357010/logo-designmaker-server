@@ -5,6 +5,7 @@ const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
 const User = require("../models/userModel");
+const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
 
 const connectionString = process.env.DB_URL;
 if (!connectionString) {
@@ -68,14 +69,15 @@ agenda.define('sendOTPMail', async (job) => {
 })
 
 agenda.define('sendResetPasswordLink', async (job) => {
-    const { toSender, emailSubject, messageContent } = job.attrs.data;
+    const { toSender, emailSubject, htmlToSend } = job.attrs.data;
 
     try {
         const message = {
             from: process.env.EMAIL,
             to: toSender,
             subject: emailSubject,
-            text: messageContent,
+            // text: messageContent,
+            html: htmlToSend
         };
         await transporter.sendMail(message);
         console.log("Email for password reset link sent successfully");
