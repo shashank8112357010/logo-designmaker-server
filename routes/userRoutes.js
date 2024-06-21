@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening, resetPassword, resetPasswordLink, changePasswordAfterAuth, changePasswordBeforeAuth } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -33,8 +33,14 @@ router.post("/verifyOTP", (req, res, next) => {
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
 
-// change password:
-router.put("/changePassword", authenticate, changePassword);
+// change password: (authentication)
+router.put("/changePassword", authenticate, changePasswordAfterAuth);
+
+// change password without login: 
+// providing reset link:
+router.post("/resetPasswordLink", changePasswordBeforeAuth);
+// changing password:
+router.post("/resetPassword", resetPassword);
 
 // twoFactor: 
 router.post("/enableTwoFactor", authenticate, enableTwoFactor);

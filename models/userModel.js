@@ -46,10 +46,7 @@ const userSchema = mongoose.Schema({
         type: String,
         default: "user"
     },
-    presentAddress: {
-        type: String,
-    },
-    permanentAddress: {
+    address: {
         type: String,
     },
     city: {

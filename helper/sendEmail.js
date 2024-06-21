@@ -67,6 +67,23 @@ agenda.define('sendOTPMail', async (job) => {
     }
 })
 
+agenda.define('sendResetPasswordLink', async (job) => {
+    const { toSender, emailSubject, messageContent } = job.attrs.data;
+
+    try {
+        const message = {
+            from: process.env.EMAIL,
+            to: toSender,
+            subject: emailSubject,
+            text: messageContent,
+        };
+        await transporter.sendMail(message);
+        console.log("Email for password reset link sent successfully");
+    } catch (error) {
+        console.error('Error sending Reset Password Link email:', error);
+        throw new Error("Email could not be sent");
+    }
+})
 
 const templatePath_1 = path.join(__dirname, '../views', 'greetingEmailMorning.ejs');
 const templateSource_1 = fs.readFileSync(templatePath_1, 'utf8');

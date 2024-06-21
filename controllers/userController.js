@@ -6,6 +6,7 @@ const upload = require("../middlewares/multer");
 const { generateOTP } = require("../helper/generate");
 const OTP = require("../models/otpModel")
 const agenda = require("../helper/sendEmail");
+const Token = require("../models/tokenModel");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -330,7 +331,7 @@ module.exports.editProfile = async (req, res) => {
             }
 
             const id = req.user;
-            const { firstName, lastName, workEmail, phoneNo, username, presentAddress, permanentAddress, city, postalCode, country } = req.body;
+            const { firstName, lastName, workEmail, phoneNo, username, address, city, postalCode, country } = req.body;
 
             // finding the user:
             const user = await User.findById(id);
@@ -346,8 +347,7 @@ module.exports.editProfile = async (req, res) => {
             if (username) user.username = username;
             if (workEmail) user.workEmail = workEmail;
             if (phoneNo) user.phoneNo = phoneNo;
-            if (presentAddress) user.presentAddress = presentAddress;
-            if (permanentAddress) user.permanentAddress = permanentAddress;
+            if (address) user.address = address;
             if (city) user.city = city;
             if (postalCode) user.postalCode = postalCode;
             if (country) user.country = country;
@@ -376,8 +376,8 @@ module.exports.editProfile = async (req, res) => {
     })
 }
 
-// Change Password:
-module.exports.changePassword = async (req, res) => {
+// Change Password: (after login)
+module.exports.changePasswordAfterAuth = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user;
@@ -412,6 +412,109 @@ module.exports.changePassword = async (req, res) => {
         })
     }
 }
+
+// change password with authentication (reset link to be sent on email)
+module.exports.changePasswordBeforeAuth = async (req, res) => {
+    try {
+        const { workEmail } = req.body;
+
+        const user = await User.findOne({ workEmail });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const resetToken = await generateToken(user._id);
+
+        const tokenDoc = new Token({
+            userId: user._id,
+            token: resetToken,
+            createdAt: new Date(),
+        });
+        await tokenDoc.save();
+
+        const resetLink = `http://localhost:4000/api/dashboard/resetPassword?resetToken=${resetToken}`;
+
+        // if user is found: 
+        await agenda.schedule('in 1 second', 'sendResetPasswordLink', {
+            toSender: workEmail,
+            emailSubject: "Password Reset Link",
+            messageContent: `The link for your password  reset is: ${resetLink}`
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Reset password link sent successfully..",
+            resetToken,
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
+// setting new password: 
+module.exports.resetPassword = async (req, res) => {
+    try {
+        const { resetToken, newPassword, confirmPassword } = req.body;
+
+        if (newPassword != confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match.. Please enter same password"
+            })
+        }
+
+        const tokenDoc = await Token.findOne({ token: resetToken });
+
+        // Check if token exists
+        if (!tokenDoc) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired token',
+            });
+        }
+
+        // Find the user associated with the token
+        const user = await User.findById(tokenDoc.userId);
+
+        // Check if user exists
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        const workEmail = user.workEmail;
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10); // Adjust salt rounds as needed
+
+        // Update user's password
+        user.password = hashedPassword;
+        await user.save();
+
+        // Delete the token after successful use
+        await Token.deleteOne({ token: resetToken });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Password has been reset successfully.',
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+        });
+    }
+}
+
 
 // ENABLE TWO FACTOR: 
 module.exports.enableTwoFactor = async (req, res) => {
