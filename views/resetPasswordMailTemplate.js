@@ -59,7 +59,6 @@ module.exports.resetPasswordTemplate = (username, resetLink) => {
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="logo_1.png" alt="">
                     <h1>Reset Your Password</h1>
                 </div>
                 <div class="content">
