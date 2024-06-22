@@ -436,7 +436,8 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
         });
         await tokenDoc.save();
 
-        const resetLink = `http://localhost:4000/api/dashboard/resetPassword/${resetToken}`;
+        // const resetLink = `http://localhost:4000/api/dashboard/resetPassword/${resetToken}`;
+        const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
 
         const htmlToSend = resetPasswordTemplate(user.username, resetLink);
 
@@ -466,7 +467,7 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
 module.exports.resetPassword = async (req, res) => {
     try {
         const { resetToken } = req.params;
-        const { newPassword, confirmPassword } = req.body;
+        const { newPassword, confirmPassword  } = req.body;
 
         if (newPassword != confirmPassword) {
             return res.status(400).json({
