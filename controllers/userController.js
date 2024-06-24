@@ -10,6 +10,7 @@ const Token = require("../models/tokenModel");
 const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
 const { registerTemplate } = require("../views/registerEmailTemplate");
 const { otpTemplate } = require("../views/otpEmailTemplate");
+const { generateResetToken } = require("../helper/generateResetToken");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -435,14 +436,14 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
             })
         }
 
-        const resetToken = await generateToken(user._id);
+        const resetToken = await generateResetToken(user._id);
 
-        const tokenDoc = new Token({
-            userId: user._id,
-            token: resetToken,
-            createdAt: new Date(),
-        });
-        await tokenDoc.save();
+        // const tokenDoc = new Token({
+        //     userId: user._id,
+        //     token: resetToken,
+        //     createdAt: new Date(),
+        // });
+        // await tokenDoc.save();
 
         // const resetLink = `http://localhost:4000/api/dashboard/resetPassword/${resetToken}`;
         const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
