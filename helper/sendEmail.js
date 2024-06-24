@@ -53,13 +53,15 @@ agenda.define('sendRegisterMail', async (job) => {
 
 // Defining function to send otp: 
 agenda.define('sendOTPMail', async (job) => {
-    const { toSender, emailSubject, messageContent } = job.attrs.data;
+    // const { toSender, emailSubject, messageContent } = job.attrs.data;
+    const { toSender, emailSubject, htmlToSend } = job.attrs.data;
     try {
         const message = {
             from: process.env.EMAIL,
             to: toSender,
             subject: emailSubject,
-            text: messageContent,
+            // text: messageContent,
+            html: htmlToSend,
         };
 
         await transporter.sendMail(message);

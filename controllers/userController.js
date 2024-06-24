@@ -9,6 +9,7 @@ const agenda = require("../helper/sendEmail");
 const Token = require("../models/tokenModel");
 const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
 const { registerTemplate } = require("../views/registerEmailTemplate");
+const { otpTemplate } = require("../views/otpEmailTemplate");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -151,10 +152,12 @@ module.exports.loginUser = async (req, res) => {
             await user.save();
 
             // sending otp:
+            const htmlToSend = otpTemplate(user.username, providedOTP);
             await agenda.schedule('in 1 second', 'sendOTPMail', {
                 toSender: workEmail,
                 emailSubject: "OTP",
-                messageContent: `The OTP for login is ${providedOTP}`
+                // messageContent: `The link for your password  reset is: ${resetLink}`
+                htmlToSend
             });
 
             return res.status(200).json({
@@ -179,7 +182,6 @@ module.exports.loginUser = async (req, res) => {
             //     success: true,
             //     message: "Logged in successfully",
             //     token,
-
             // });
 
             res.cookie("token", token, tokenOptions);
