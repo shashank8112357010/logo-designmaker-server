@@ -79,7 +79,7 @@ router.get("/sendGreetingMorning", sendGreetingsMorning);
 router.get("/sendGreetingEvening", sendGreetingsEvening);
 
 // Delete a user (Admin):
-router.post("/deleteUser", authenticate, authorizeRole("admin"), deleteUser);
+router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);
 
 // Google OAuth routes: 
 router.get('/auth/google', passport.authenticate('google', {

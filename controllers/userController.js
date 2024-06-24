@@ -596,17 +596,15 @@ module.exports.sendGreetingsEvening = async (req, res) => {
 // Delete user (to be deleted by admin only):
 module.exports.deleteUser = async (req, res) => {
     try {
-        const { workEmail } = req.body;
+        const userId = req.params.id;
 
-        const user = await User.findOne({ workEmail });
+        const user = await User.findByIdAndDelete(userId);
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             })
         }
-
-        await user.deleteOne();
 
         return res.status(200).json({
             success: true,
