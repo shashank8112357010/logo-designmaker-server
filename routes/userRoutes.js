@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening, resetPassword, resetPasswordLink, changePasswordAfterAuth, changePasswordBeforeAuth } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening, resetPassword, resetPasswordLink, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -9,6 +9,7 @@ const passport = require('passport');
 const { resetPasswordScreen } = require("../views/resetPassword");
 const Token = require("../models/tokenModel");
 const User = require("../models/userModel");
+const { authorizeRole } = require("../middlewares/authorization");
 
 
 
@@ -77,6 +78,8 @@ router.post("/enableTwoFactor", authenticate, enableTwoFactor);
 router.get("/sendGreetingMorning", sendGreetingsMorning);
 router.get("/sendGreetingEvening", sendGreetingsEvening);
 
+// Delete a user (Admin):
+router.post("/deleteUser", authenticate, authorizeRole("admin"), deleteUser);
 
 // Google OAuth routes: 
 router.get('/auth/google', passport.authenticate('google', {

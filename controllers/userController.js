@@ -592,6 +592,34 @@ module.exports.sendGreetingsEvening = async (req, res) => {
     }
 }
 
+
+// Delete user (to be deleted by admin only):
+module.exports.deleteUser = async (req, res) => {
+    try {
+        const { workEmail } = req.body;
+
+        const user = await User.findOne({ workEmail });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        await user.deleteOne();
+
+        return res.status(200).json({
+            success: true,
+            message: "User deleted successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            error: error.message
+        })
+    }
+}
+
+
 // Upload profile pic: 
 module.exports.uploadProfilePicture = async (req, res) => {
     upload(req, res, async (err) => {
@@ -672,3 +700,5 @@ const generateRefreshToken = async (user) => {
 
     return refreshToken;
 }
+
+
