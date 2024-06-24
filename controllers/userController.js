@@ -8,6 +8,7 @@ const OTP = require("../models/otpModel")
 const agenda = require("../helper/sendEmail");
 const Token = require("../models/tokenModel");
 const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
+const { registerTemplate } = require("../views/registerEmailTemplate");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -28,11 +29,16 @@ module.exports.register = async (req, res) => {
             // profile: req.file.path,
         })
 
+
+
         // Sending email to user when registered: 
+        const htmlToSend = registerTemplate(user.username);
+
         await agenda.schedule('in 1 second', 'sendRegisterMail', {
             toSender: workEmail,
-            emailSubject: "Welcome to Logo Design Maker",
-            messageContent: `Welcome to Logo Design Maker. You have been registered successfully!! Your work email is: ${workEmail} and phone number: ${phoneNo}. Thank you for registering`
+            emailSubject: "Register - Logo Design Maker",
+            // messageContent: `Welcome to Logo Design Maker. You have been registered successfully!! Your work email is: ${workEmail} and phone number: ${phoneNo}. Thank you for registering`
+            htmlToSend
         });
 
         return res.status(200).json({
@@ -467,7 +473,7 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
 module.exports.resetPassword = async (req, res) => {
     try {
         const { resetToken } = req.params;
-        const { newPassword, confirmPassword  } = req.body;
+        const { newPassword, confirmPassword } = req.body;
 
         if (newPassword != confirmPassword) {
             return res.status(400).json({

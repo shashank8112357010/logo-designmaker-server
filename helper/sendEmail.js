@@ -33,13 +33,15 @@ const transporter = nodemailer.createTransport({
 
 // Define the job handler (registration mail):
 agenda.define('sendRegisterMail', async (job) => {
-    const { toSender, emailSubject, messageContent } = job.attrs.data;
+    // const { toSender, emailSubject, messageContent } = job.attrs.data;
+    const { toSender, emailSubject, htmlToSend } = job.attrs.data;
     try {
         const message = {
             from: process.env.EMAIL,
             to: toSender,
             subject: emailSubject,
-            text: messageContent,
+            // text: messageContent,
+            html: htmlToSend
         };
         await transporter.sendMail(message);
         console.log("Email for registration sent successfully");
