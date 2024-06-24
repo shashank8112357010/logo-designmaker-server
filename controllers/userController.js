@@ -207,7 +207,7 @@ module.exports.loginUser = async (req, res) => {
 module.exports.verifyOTP = async (req, res) => {
     try {
         if (!req.user || !req.user._id) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
                 message: "User is not authenticated"
             });
@@ -502,7 +502,7 @@ module.exports.resetPassword = async (req, res) => {
 
         // Check if user exists
         if (!user) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: 'User not found',
             });
@@ -622,7 +622,7 @@ module.exports.deleteUser = async (req, res) => {
 module.exports.uploadProfilePicture = async (req, res) => {
     upload(req, res, async (err) => {
         if (err) {
-            return res.status(400).json({
+            return res.status(500).json({
                 err
             })
         } else {
@@ -665,7 +665,6 @@ module.exports.uploadProfilePicture = async (req, res) => {
 
 // Function to generate token for user: 
 const generateToken = async (user) => {
-    // try {
     const token = jwt.sign(
         {
             id: user._id,
@@ -679,10 +678,6 @@ const generateToken = async (user) => {
     );
 
     return token;
-    // } catch (err) {
-    //     console.error('Error generating JWT token:', err);
-    //     return null;
-    // }
 }
 
 const generateRefreshToken = async (user) => {

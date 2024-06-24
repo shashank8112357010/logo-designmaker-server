@@ -6,9 +6,12 @@ module.exports.resetPasswordTemplate = (username, resetLink) => {
 
 <head>
     <title>Reset Password</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style type="text/css">
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Inter", sans-serif;
             margin: 0;
             padding: 0;
         }

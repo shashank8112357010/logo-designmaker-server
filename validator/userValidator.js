@@ -4,12 +4,12 @@ const userModel = require("../models/userModel");
 // register validations: 
 module.exports.registerValidator = [
     body("workEmail")
-        .notEmpty().withMessage("Please enter work email")
-        .isEmail().withMessage("Please enter a valid email")
+        .notEmpty().withMessage("Please enter workEmail")
+        .isEmail().withMessage("Please enter a valid workEmail")
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ workEmail: value });
             if (existingUser) {
-                throw new Error("User with this email already exists!!");
+                throw new Error("User with this workEmail already exists!!");
             }
         }),
 
@@ -29,16 +29,16 @@ module.exports.registerValidator = [
         .matches(/[0-9]/).withMessage("Must contain one number")
         .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
         .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
-        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
+        .isLength({ min: 8 }).withMessage("password should contain atleast 8 characters"),
 
     body("phoneNo")
-        .notEmpty().withMessage("Please enter phone number")
-        .isString().withMessage("Please enter a valid mobile number")
-        .isLength({ min: 10, max: 10 }).withMessage("Mobile number must contain 10 digits only")
+        .notEmpty().withMessage("Please enter phoneNo")
+        .isString().withMessage("Please enter a valid phoneNo")
+        .isLength({ min: 10, max: 10 }).withMessage("phoneNo must contain 10 digits only")
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ phoneNo: value });
             if (existingUser) {
-                throw new Error("User with this phone number already exists..");
+                throw new Error("User with this phoneNo already exists..");
             }
         }),
 ];
@@ -47,38 +47,38 @@ module.exports.registerValidator = [
 // requirements validations: 
 module.exports.requirementsValidator = [
     body("firstName")
-        .notEmpty().withMessage("Please enter first name")
-        .isString().withMessage("Please enter a valid name"),
+        .notEmpty().withMessage("Please enter firstName")
+        .isString().withMessage("Please enter a valid firstName"),
 
     body("lastName")
-        .notEmpty().withMessage("Please enter last name")
-        .isString().withMessage("Please enter a valid last name"),
+        .notEmpty().withMessage("Please enter lastName")
+        .isString().withMessage("Please enter a valid lastName"),
 
     body("businessName")
-        .notEmpty().withMessage("Please enter Business Name")
-        .isString().withMessage("Please enter a valid business name")
+        .notEmpty().withMessage("Please enter businessName")
+        .isString().withMessage("Please enter a valid businessName")
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ businessName: value });
             if (existingUser) {
-                throw new Error("User with this business name already exists..");
+                throw new Error("User with this businessName already exists..");
             }
         }),
 
     body("brandName")
-        .notEmpty().withMessage("Provide a brand name to create logo")
-        .isString().withMessage("Please enter a valid brand name")
+        .notEmpty().withMessage("Provide a brandName to create logo")
+        .isString().withMessage("Please enter a valid brandName")
 ]
 
 
 // login validations: 
 module.exports.loginValidator = [
     body("workEmail")
-        .notEmpty().withMessage("Please enter a email.")
-        .isEmail().withMessage("Please enter a valid email")
+        .notEmpty().withMessage("Please enter a workEmail.")
+        .isEmail().withMessage("Please enter a valid workEmail")
         .custom(async (value) => {
             const existingUser = await userModel.findOne({ workEmail: value });
             if (!existingUser) {
-                throw new Error("User with this email does not exist..");
+                throw new Error("User with this workEmail does not exist..");
             }
         }),
 
@@ -89,20 +89,20 @@ module.exports.loginValidator = [
 
 module.exports.resetValidator = [
     body("newPassword")
-        .notEmpty().withMessage("Please enter a password")
+        .notEmpty().withMessage("Please enter a newPassword")
         // .isString().withMessage("Please enter a valid password")
         .matches(/[a-z]/).withMessage("Must contain one lowercase letter")
         .matches(/[0-9]/).withMessage("Must contain one number")
         .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
         .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
-        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
+        .isLength({ min: 8 }).withMessage("newPassword should contain atleast 8 characters"),
 
     body("confirmPassword")
-        .notEmpty().withMessage("Please enter a password")
+        .notEmpty().withMessage("Please enter a confirmPassword")
         // .isString().withMessage("Please enter a valid password")
         .matches(/[a-z]/).withMessage("Must contain one lowercase letter")
         .matches(/[0-9]/).withMessage("Must contain one number")
         .matches(/[A-Z]/).withMessage("Must contain one uppercase letter")
         .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
-        .isLength({ min: 8 }).withMessage("Password should contain atleast 8 characters"),
+        .isLength({ min: 8 }).withMessage("confirmPassword should contain atleast 8 characters"),
 ]
