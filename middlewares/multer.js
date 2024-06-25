@@ -2,6 +2,8 @@
 const multer = require('multer');
 const path = require('path');
 
+const maxSize = 1 * 1000 * 1000; // 1MB in bytes
+
 // Set storage engine
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -13,9 +15,9 @@ const storage = multer.diskStorage({
 });
 
 // Initialize upload
-const upload = multer({
+module.exports.upload = multer({
     storage: storage,
-    limits: { fileSize: 5000000 }, // 5MB limit
+    limits: { fileSize: maxSize }, // 1MB limit
     fileFilter: (req, file, cb) => {
         checkFileType(file, cb);
     }
@@ -34,4 +36,14 @@ function checkFileType(file, cb) {
     }
 }
 
-module.exports = upload;
+module.exports.checkFileSizeMiddleware = (req, res, next) => {
+    const fileSize = parseInt(req.headers['content-length']);
+    console.log(fileSize)
+    if (fileSize > maxSize) {
+        return res.status(400).json({
+            success: false,
+            message: 'Error: File size must be less than 1MB (1000000KB).'
+        });
+    }
+    next();
+};

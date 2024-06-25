@@ -10,6 +10,7 @@ const { resetPasswordScreen } = require("../views/resetPassword");
 const Token = require("../models/tokenModel");
 const User = require("../models/userModel");
 const { authorizeRole } = require("../middlewares/authorization");
+const { checkFileSizeMiddleware } = require("../middlewares/multer");
 
 
 
@@ -26,7 +27,7 @@ router.post("/login", validate(loginValidator), loginUser);
 router.post("/verifyOTP/:userId", verifyOTP);
 
 // edit profile:
-router.put("/editProfile", authenticate, editProfile);
+router.put("/editProfile", authenticate, checkFileSizeMiddleware, editProfile);
 
 // change password: (authentication)
 router.put("/changePassword", authenticate, changePasswordAfterAuth);
