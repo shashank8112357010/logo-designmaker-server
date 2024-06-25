@@ -13,6 +13,7 @@ const { otpTemplate } = require("../views/otpEmailTemplate");
 const { generateResetToken } = require("../helper/generateResetToken");
 const mongoose = require('mongoose');
 const otpModel = require("../models/otpModel");
+const { uploadImg } = require("../utils/cloudinary");
 
 
 // REGISTER USER:
@@ -249,7 +250,7 @@ module.exports.verifyOTP = async (req, res) => {
         }
 
 
-        const user = await User.findById(userId).populate('otp');
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -331,12 +332,6 @@ module.exports.searchUser = async (req, res) => {
 module.exports.editProfile = async (req, res) => {
     upload(req, res, async (err) => {
         try {
-            if (err) {
-                return res.status(400).json({
-                    err
-                })
-            }
-
             const id = req.user;
             const { firstName, lastName, workEmail, phoneNo, username, address, city, postalCode, country } = req.body;
 
@@ -361,22 +356,56 @@ module.exports.editProfile = async (req, res) => {
 
             // if profile image is provided: 
             if (req.file) {
-                const imgURL = `http://localhost:4000/uploads/${req.file.filename}`;
-                user.profileImg.key = req.file.filename;
-                user.profileImg.url = imgURL;
+                try {
+                    const result = await uploadImg(req.file.path);
+                    if (result.success) {
+                        user.profileImg = {
+                            key: result.public_id,
+                            url: result.secure_url,
+                        }
+                    } else {
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Image upload failed',
+                            error: result.message
+                        })
+                    }
+
+
+                } catch (error) {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Image upload failed',
+                        error: error.message
+                    });
+                }
+
+                // if (req.file) {
+                //     const imgURL = `http://localhost:4000/uploads/${req.file.filename}`;
+                //     user.profileImg.key = req.file.filename;
+                //     user.profileImg.url = imgURL;
+                // }
+
+                await user.save();
+
+                return res.status(200).json({
+                    success: true,
+                    message: "Profile update successfully!!",
+                    user: {
+                        userId: user._id,
+                        workEmail: user.workEmail,
+                        phoneNo: user.phoneNo,
+                        profileImg: user.profileImg,
+                        role: user.role,
+                        username: user.username
+                    }
+                })
             }
-
-            await user.save();
-
-            return res.status(200).json({
-                success: true,
-                message: "Profile update successfully!!",
-                user
-            })
         }
         catch (error) {
             return res.status(500).json({
                 success: false,
+                // message: "failed line 398",
                 error: error.message
             });
         }
