@@ -11,6 +11,9 @@ const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
 const { registerTemplate } = require("../views/registerEmailTemplate");
 const { otpTemplate } = require("../views/otpEmailTemplate");
 const { generateResetToken } = require("../helper/generateResetToken");
+const mongoose = require('mongoose');
+const otpModel = require("../models/otpModel");
+
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -164,6 +167,7 @@ module.exports.loginUser = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
+                userId : user._id
             })
         }
         else {
@@ -192,7 +196,15 @@ module.exports.loginUser = async (req, res) => {
                 success: true,
                 message: "Logged in successfully!!",
                 token,
-                refreshToken
+                refreshToken,
+                user: {
+                    userId : user._id,
+                    workEmail: user.workEmail,
+                    phoneNo: user.phoneNo,
+                    profileImg: user.profileImg,
+                    role: user.role,
+                    username: user.username
+                }
             })
 
         }
@@ -207,10 +219,11 @@ module.exports.loginUser = async (req, res) => {
 // VERIFY OTP:
 module.exports.verifyOTP = async (req, res) => {
     try {
-        if (!req.user || !req.user._id) {
+        const {userId} = req.params
+        if (!userId) {
             return res.status(401).json({
                 success: false,
-                message: "User is not authenticated"
+                message: "User Id  required"
             });
         }
         const { otp } = req.body;
@@ -221,7 +234,43 @@ module.exports.verifyOTP = async (req, res) => {
             });
         }
 
-        const user = await User.findById(req.user._id).populate('otp');
+        const userDbOTP = await otpModel.findOne({userId})
+        if (!userDbOTP) {
+            return res.status(404).json({
+                success: false,
+                message: "OTP Expired"
+            })
+        }
+
+        // if user.otp is not found:
+        // if (!user.otp) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "OTP not found"
+        //     })
+        // }
+
+        // Check OTP expiration (optional step)
+        // const otpExpiration = new Date(user.otp.createdAt);
+        // otpExpiration.setMinutes(otpExpiration.getMinutes() + 2);   // OTP expires after 2 minutes
+
+        // if (otpExpiration < new Date()) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Expired OTP"
+        //     });
+        // }
+        console.log(userDbOTP , "userDbOTP");
+
+        if (userDbOTP.otpCode !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Incorrect OTP"
+            });
+        }
+
+
+        const user = await User.findById(userId).populate('otp');
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -229,37 +278,11 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
-        // if user.otp is not found:
-        if (!user.otp) {
-            return res.status(404).json({
-                success: false,
-                message: "OTP not found"
-            })
-        }
-
-        // Check OTP expiration (optional step)
-        const otpExpiration = new Date(user.otp.createdAt);
-        otpExpiration.setMinutes(otpExpiration.getMinutes() + 2);   // OTP expires after 2 minutes
-
-        if (otpExpiration < new Date()) {
-            return res.status(400).json({
-                success: false,
-                message: "Expired OTP"
-            });
-        }
-
-        if (user.otp.otpCode !== otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Incorrect OTP"
-            });
-        }
-
         // Clear OTP after successful verification
-        await User.findByIdAndUpdate(
-            { _id: user._id },
-            { $unset: { otp: 1 } } // Unset OTP field
-        );
+        // await User.findByIdAndUpdate(
+        //     { _id: user._id },
+        //     { $unset: { otp: 1 } } // Unset OTP field
+        // );
         // await OTP.deleteOne({ _id: user.otp._id });
 
         const token = await generateToken(user);
@@ -279,9 +302,11 @@ module.exports.verifyOTP = async (req, res) => {
 
         return res.status(200).json({
             success: true,
+            message : "Logged in Successfully",
             token,
             refreshToken,
             user: {
+                userId : user._id,
                 workEmail: user.workEmail,
                 phoneNo: user.phoneNo,
                 profileImg: user.profileImg,
@@ -438,12 +463,12 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
 
         const resetToken = await generateResetToken(user._id);
 
-        // const tokenDoc = new Token({
-        //     userId: user._id,
-        //     token: resetToken,
-        //     createdAt: new Date(),
-        // });
-        // await tokenDoc.save();
+        const tokenDoc = new Token({
+            userId: user._id,
+            token: resetToken,
+            createdAt: new Date(),
+        });
+        await tokenDoc.save();
 
         // const resetLink = `http://localhost:4000/api/dashboard/resetPassword/${resetToken}`;
         const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
@@ -486,6 +511,8 @@ module.exports.resetPassword = async (req, res) => {
         }
 
         const tokenDoc = await Token.findOne({ token: resetToken });
+
+        console.log(tokenDoc ,resetToken, "tokenDoc");
 
         const tokenExp = new Date(tokenDoc.createdAt)
         tokenExp.setMinutes(tokenExp.getMinutes() + 5);
@@ -595,28 +622,41 @@ module.exports.sendGreetingsEvening = async (req, res) => {
 
 
 // Delete user (to be deleted by admin only):
+
 module.exports.deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
+        console.log(userId, "userId");
 
+        // Validate the ID format
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID format"
+            });
+        }
+
+        // Find and delete the user by ID
         const user = await User.findByIdAndDelete(userId);
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
-            })
+            });
         }
 
         return res.status(200).json({
             success: true,
             message: "User deleted successfully"
-        })
+        });
     } catch (error) {
         return res.status(500).json({
+            success: false,
             error: error.message
-        })
+        });
     }
-}
+};
+
 
 
 // Upload profile pic: 

@@ -12,12 +12,12 @@ module.exports.generateResetToken = async (id) => {
         tokenCode += characters.charAt(randomIndex);
     }
 
-    // creating token in the token model:
-    const token = await Token.create({
-        userId: id,
-        token: tokenCode,
-        createdAt: new Date()
-    });
-    await token.save();
+    // // creating token in the token model:
+    // const token = await Token.create({
+    //     userId: id,
+    //     token: tokenCode,
+    //     createdAt: new Date()
+    // });
+    // await token.save();
     return tokenCode;
 }

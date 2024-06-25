@@ -23,17 +23,7 @@ router.post("/requirements/:id", authenticate, validate(requirementsValidator), 
 router.post("/login", validate(loginValidator), loginUser);
 
 // Verify OTP: 
-router.post("/verifyOTP", (req, res, next) => {
-    // Check if user is authenticated via session
-    if (req.session) {
-        req.user = req.session.user;
-        return next();
-    } else {
-        return res.status(401).json({
-            message: "Session Expired"
-        })
-    }
-}, verifyOTP);
+router.post("/verifyOTP/:userId", verifyOTP);
 
 // edit profile:
 router.put("/editProfile", authenticate, editProfile);
