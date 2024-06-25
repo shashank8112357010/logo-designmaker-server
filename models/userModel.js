@@ -58,11 +58,6 @@ const userSchema = mongoose.Schema({
     country: {
         type: String,
     },
-
-    otp: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'otpModel'
-    },
     twoFactor: {
         type: Boolean,
         default: false,

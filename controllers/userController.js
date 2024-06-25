@@ -152,9 +152,6 @@ module.exports.loginUser = async (req, res) => {
             });
             await otpDoc.save();
 
-            user.otp = otpDoc._id;
-            await user.save();
-
             // sending otp:
             const htmlToSend = otpTemplate(user.username, providedOTP);
             await agenda.schedule('in 1 second', 'sendOTPMail', {
@@ -167,7 +164,7 @@ module.exports.loginUser = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "OTP sent successfully",
-                userId : user._id
+                userId: user._id
             })
         }
         else {
@@ -198,7 +195,7 @@ module.exports.loginUser = async (req, res) => {
                 token,
                 refreshToken,
                 user: {
-                    userId : user._id,
+                    userId: user._id,
                     workEmail: user.workEmail,
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg,
@@ -219,7 +216,7 @@ module.exports.loginUser = async (req, res) => {
 // VERIFY OTP:
 module.exports.verifyOTP = async (req, res) => {
     try {
-        const {userId} = req.params
+        const { userId } = req.params
         if (!userId) {
             return res.status(401).json({
                 success: false,
@@ -234,7 +231,7 @@ module.exports.verifyOTP = async (req, res) => {
             });
         }
 
-        const userDbOTP = await otpModel.findOne({userId})
+        const userDbOTP = await OTP.findOne({ userId })
         if (!userDbOTP) {
             return res.status(404).json({
                 success: false,
@@ -242,25 +239,7 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
-        // if user.otp is not found:
-        // if (!user.otp) {
-        //     return res.status(404).json({
-        //         success: false,
-        //         message: "OTP not found"
-        //     })
-        // }
-
-        // Check OTP expiration (optional step)
-        // const otpExpiration = new Date(user.otp.createdAt);
-        // otpExpiration.setMinutes(otpExpiration.getMinutes() + 2);   // OTP expires after 2 minutes
-
-        // if (otpExpiration < new Date()) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Expired OTP"
-        //     });
-        // }
-        console.log(userDbOTP , "userDbOTP");
+        console.log(userDbOTP, "userDbOTP");
 
         if (userDbOTP.otpCode !== otp) {
             return res.status(400).json({
@@ -277,13 +256,6 @@ module.exports.verifyOTP = async (req, res) => {
                 message: "User not found"
             })
         }
-
-        // Clear OTP after successful verification
-        // await User.findByIdAndUpdate(
-        //     { _id: user._id },
-        //     { $unset: { otp: 1 } } // Unset OTP field
-        // );
-        // await OTP.deleteOne({ _id: user.otp._id });
 
         const token = await generateToken(user);
         // generating refresh token:
@@ -302,11 +274,11 @@ module.exports.verifyOTP = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message : "Logged in Successfully",
+            message: "Logged in Successfully",
             token,
             refreshToken,
             user: {
-                userId : user._id,
+                userId: user._id,
                 workEmail: user.workEmail,
                 phoneNo: user.phoneNo,
                 profileImg: user.profileImg,
@@ -512,7 +484,7 @@ module.exports.resetPassword = async (req, res) => {
 
         const tokenDoc = await Token.findOne({ token: resetToken });
 
-        console.log(tokenDoc ,resetToken, "tokenDoc");
+        console.log(tokenDoc, resetToken, "tokenDoc");
 
         const tokenExp = new Date(tokenDoc.createdAt)
         tokenExp.setMinutes(tokenExp.getMinutes() + 5);
