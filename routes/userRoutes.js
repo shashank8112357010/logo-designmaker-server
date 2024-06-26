@@ -27,7 +27,7 @@ router.post("/login", validate(loginValidator), loginUser);
 router.post("/verifyOTP/:userId", verifyOTP);
 
 // edit profile:
-router.put("/editProfile", authenticate, checkFileSizeMiddleware, editProfile);
+router.put("/editProfile", authenticate, editProfile);
 
 // change password: (authentication)
 router.put("/changePassword", authenticate, changePasswordAfterAuth);
