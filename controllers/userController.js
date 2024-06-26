@@ -331,6 +331,13 @@ module.exports.searchUser = async (req, res) => {
 // Edit user profile:
 module.exports.editProfile = async (req, res) => {
     upload(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({
+                success: false,
+                message: "Error uploading image",
+                error: err
+            })
+        }
         try {
             const id = req.user;
             const { firstName, lastName, workEmail, phoneNo, username, address, city, postalCode, country } = req.body;

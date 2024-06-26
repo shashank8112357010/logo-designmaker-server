@@ -28,13 +28,13 @@ function checkFileType(file, cb) {
     const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
-    console.log("extension: ", file.extname);
+    console.log("extension: ", path.extname(file.originalname).toLowerCase());
     console.log("mimetype: ", file.mimetype)
 
     if (mimetype && extname) {
         return cb(null, true);
     } else {
-        return cb('Error: Invalid file type.. should be in jpg/jpeg/png format');
+        cb('Error: Invalid file type.. should be in jpg/jpeg/png format');
     }
 }
 
@@ -44,7 +44,8 @@ module.exports.checkFileSizeMiddleware = (req, res, next) => {
     if (fileSize > maxSize) {
         return res.status(400).json({
             success: false,
-            message: 'Error: File size must be less than 1MB (1000000KB).'
+            message: 'Error uploading image',
+            error: 'Error: File size must be less than 1MB (1000000KB)'
         });
     }
     next();
