@@ -38,15 +38,15 @@ function checkFileType(file, cb) {
     }
 }
 
-module.exports.checkFileSizeMiddleware = (req, res, next) => {
-    const fileSize = parseInt(req.headers['content-length']);
-    console.log(fileSize)
-    if (fileSize > maxSize) {
-        return res.status(400).json({
-            success: false,
-            message: 'Error uploading image',
-            error: 'Error: File size must be less than 1MB (1000000KB)'
-        });
-    }
-    next();
-};
+// module.exports.checkFileSizeMiddleware = (req, res, next) => {
+//     const fileSize = parseInt(req.headers['content-length']);
+//     console.log(fileSize)
+//     if (fileSize > maxSize) {
+//         return res.status(400).json({
+//             success: false,
+//             message: 'Error uploading image',
+//             error: 'Error: File size must be less than 1MB (1000000KB)'
+//         });
+//     }
+//     next();
+// };

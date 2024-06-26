@@ -14,6 +14,7 @@ const { generateResetToken } = require("../helper/generateResetToken");
 const mongoose = require('mongoose');
 const otpModel = require("../models/otpModel");
 const { uploadImg } = require("../utils/cloudinary");
+const multer = require("multer");
 
 
 // REGISTER USER:
@@ -331,7 +332,14 @@ module.exports.searchUser = async (req, res) => {
 // Edit user profile:
 module.exports.editProfile = async (req, res) => {
     upload(req, res, async (err) => {
-        if (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({
+                success: false,
+                message: "File size too large. Maximum size should be 1MB only",
+                error: true,
+            })
+        }
+        else if (err) {
             return res.status(400).json({
                 success: false,
                 message: "Error uploading image",
