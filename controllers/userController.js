@@ -197,9 +197,9 @@ module.exports.loginUser = async (req, res) => {
                 refreshToken,
                 user: {
                     userId: user._id,
-                    workEmail: user.workEmail,
+                    workEmail: user.workEmail,  
                     phoneNo: user.phoneNo,
-                    profileImg: user.profileImg,
+                    profileImg: user.profileImg.url,
                     role: user.role,
                     username: user.username
                 }
