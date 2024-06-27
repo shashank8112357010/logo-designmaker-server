@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, changePassword, verifyOTP, enableTwoFactor, sendGreetingsMorning, sendGreetingsEvening, resetPassword, resetPasswordLink, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, resetPasswordLink, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -11,7 +11,6 @@ const Token = require("../models/tokenModel");
 const User = require("../models/userModel");
 const { authorizeRole } = require("../middlewares/authorization");
 const { checkFileSizeMiddleware } = require("../middlewares/multer");
-
 
 
 // user registration: 
@@ -64,10 +63,6 @@ router.post("/resetPassword/:resetToken", validate(resetValidator), resetPasswor
 
 // twoFactor: 
 router.post("/enableTwoFactor", authenticate, enableTwoFactor);
-
-// send greeting:
-router.get("/sendGreetingMorning", sendGreetingsMorning);
-router.get("/sendGreetingEvening", sendGreetingsEvening);
 
 // Delete a user (Admin):
 router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);

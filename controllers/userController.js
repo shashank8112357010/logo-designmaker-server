@@ -198,7 +198,7 @@ module.exports.loginUser = async (req, res) => {
                 refreshToken,
                 user: {
                     userId: user._id,
-                    workEmail: user.workEmail,  
+                    workEmail: user.workEmail,
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg.url,
                     role: user.role,
@@ -596,49 +596,7 @@ module.exports.enableTwoFactor = async (req, res) => {
     }
 }
 
-// Sending greetings mail: (morning)
-module.exports.sendGreetingsMorning = async (req, res) => {
-    try {
-        await agenda.every('00 05 * * *', 'greetingMail_morning', {
-            emailSubject: "GREETINGS",
-        }, { timezone: 'Asia/Kolkata' });
-
-        return res.status(200).json({
-            success: true,
-            message: "Morning Greeting emails scheduled successfully"
-        });
-    } catch (error) {
-        console.error('Error scheduling morning greeting emails:', error);
-        return res.status(500).json({
-            success: false,
-            message: "Error scheduling greeting emails"
-        });
-    }
-}
-
-// Sending greetings mail (evening)
-module.exports.sendGreetingsEvening = async (req, res) => {
-    try {
-        await agenda.every('00 19 * * *', 'greetingMail_evening', {
-            emailSubject: "GREETINGS",
-        }, { timezone: 'Asia/Kolkata' });
-
-        return res.status(200).json({
-            success: true,
-            message: "Evening greeting emails scheduled successfully"
-        });
-    } catch (error) {
-        console.error('Error scheduling evening greeting emails:', error);
-        return res.status(500).json({
-            success: false,
-            message: "Error scheduling greeting emails"
-        });
-    }
-}
-
-
 // Delete user (to be deleted by admin only):
-
 module.exports.deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;

@@ -1,11 +1,7 @@
 const Agenda = require("agenda");
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const ejs = require('ejs');
-const fs = require('fs');
-const path = require('path');
-const User = require("../models/userModel");
-const { resetPasswordTemplate } = require("../views/resetPasswordMailTemplate");
+const { MongoClient } = require("mongodb")
 
 const connectionString = process.env.DB_URL;
 if (!connectionString) {
@@ -14,8 +10,8 @@ if (!connectionString) {
 const agenda = new Agenda({
     db: {
         address: connectionString,
-        collection: 'emailJobs'
-    }
+        collection: 'emailJobs',
+    },
 });
 
 const transporter = nodemailer.createTransport({
@@ -41,7 +37,7 @@ agenda.define('sendRegisterMail', async (job) => {
             to: toSender,
             subject: emailSubject,
             // text: messageContent,
-            html: htmlToSend
+            html: htmlToSend,
         };
         await transporter.sendMail(message);
         console.log("Email for registration sent successfully");
@@ -74,14 +70,14 @@ agenda.define('sendOTPMail', async (job) => {
 
 agenda.define('sendResetPasswordLink', async (job) => {
     const { toSender, emailSubject, htmlToSend } = job.attrs.data;
-
     try {
         const message = {
             from: process.env.EMAIL,
             to: toSender,
             subject: emailSubject,
             // text: messageContent,
-            html: htmlToSend
+            html: htmlToSend,
+
         };
         await transporter.sendMail(message);
         console.log("Email for password reset link sent successfully");
@@ -91,70 +87,47 @@ agenda.define('sendResetPasswordLink', async (job) => {
     }
 })
 
-const templatePath_1 = path.join(__dirname, '../views', 'greetingEmailMorning.ejs');
-const templateSource_1 = fs.readFileSync(templatePath_1, 'utf8');
 
-const templatePath_2 = path.join(__dirname, '../views', 'greetingEmailEvening.ejs');
-const templateSource_2 = fs.readFileSync(templatePath_2, 'utf8');
-
-// mail to be sent in morning: 
-agenda.define("greetingMail_morning", async (job) => {
-    const { emailSubject } = job.attrs.data;
+async function removeFinishedJobs() {
+    const client = new MongoClient(connectionString);
 
     try {
-        const users = await User.find({ mailAllow: true });
-        for (let user of users) {
-            const personalisedMsg = `Good morning, ${user.username}.. have a great day!!`
-            const toSender = user.workEmail;
-            const htmlToSend = ejs.render(templateSource_1, { username: user.username, message: personalisedMsg });
+        await client.connect();
+        const db = client.db();
+        const collection = db.collection('emailJobs');
 
-            const message = {
-                from: process.env.EMAIL,
-                to: toSender,
-                subject: emailSubject,
-                // text: messageContent,
-                html: htmlToSend,
-            }
-            await transporter.sendMail(message);
-            console.log("Email for morning greeting sent successfully");
-        }
+        const result = await collection.deleteMany({
+            $and: [
+                { lastFinishedAt: { $ne: null } }, // Job has finished
+            ]
+        });
+
+        console.log(`Removed ${result.deletedCount} finished job(s)`);
+
     } catch (error) {
-        console.error('Error sending morning greeting:', error);
-        throw new Error("Email could not be sent");
+        console.error('Error finding finished jobs:', error);
+        throw new Error('Failed to find finished jobs');
     }
-})
+}
 
-agenda.define("greetingMail_evening", async (job) => {
-    const { emailSubject } = job.attrs.data;
-
+agenda.define('removeFinishedJobs', async (job) => {
     try {
-        const users = await User.find({ mailAllow: true });
-        for (let user of users) {
-            const personalisedMsg = `Good evening, ${user.username}.. Hope you had a great day\n\nLorem ipsum dolor sit amet, consectetur adipisicing elit. Eius saepe incidunt aut voluptatibus quam inventore placeat quia voluptas? Debitis, temporibus.\nLorem ipsum dolor sit amet, consectetur adipisicing elit. Eius saepe incidunt aut voluptatibus quam inventore placeat quia voluptas? Debitis, temporibus.`
-            const toSender = user.workEmail;
-            const htmlToSend = ejs.render(templateSource_2, { username: user.username, message: personalisedMsg });
-
-            const message = {
-                from: process.env.EMAIL,
-                to: toSender,
-                subject: emailSubject,
-                // text: messageContent,
-                html: htmlToSend,
-            }
-            await transporter.sendMail(message);
-            console.log("Email for evening greeting sent successfully");
-        }
+        await removeFinishedJobs();
     } catch (error) {
-        console.error('Error sending evening greeting email:', error);
-        throw new Error("Email could not be sent");
+        console.error('Error running removeFinishedJobs:', error);
     }
-})
+});
 
 
 // Event handlers for Agenda
 agenda.on('ready', () => {
     console.log('Agenda started!');
+
+    // Define how often the job should run 
+    agenda.every('12 hours', 'removeFinishedJobs');
+
     agenda.start(); // Start Agenda processing after it's ready
+
 });
 
 agenda.on('error', (error) => {
@@ -162,6 +135,4 @@ agenda.on('error', (error) => {
     throw new Error("Agenda connection error");
 });
 
-
 module.exports = agenda;
-
