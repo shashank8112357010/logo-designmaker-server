@@ -329,6 +329,69 @@ module.exports.searchUser = async (req, res) => {
     }
 }
 
+// Get user details: 
+module.exports.getUserDetailsAndReq = async (req, res) => {
+    try {
+        const id = req.user;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const result = await User.aggregate(
+            [
+                {
+                    $match: { _id: user._id }
+                },
+                {
+                    $lookup: {
+                        from: "userreqmodels",
+                        localField: '_id',
+                        foreignField: 'userId',
+                        as: 'userRequirements'
+                    }
+                },
+            ]
+        )
+
+        // console.log('AggregationRes:', result);
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User requirements not found!!",
+            })
+        }
+
+        const userWithRequirements = result[0];
+
+        return res.status(200).json({
+            success: true,
+            message: "User details found",
+            user: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                workEmail: user.workEmail,
+                phoneNo: user.phoneNo,
+                username: user.username,
+                address: user.address,
+                city: user.city,
+                postalCode: user.postalCode,
+                country: user.country,
+                profileImg: user.profileImg,
+                userRequirements: userWithRequirements.userRequirements
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
 // Edit user profile:
 module.exports.editProfile = async (req, res) => {
     upload(req, res, async (err) => {
