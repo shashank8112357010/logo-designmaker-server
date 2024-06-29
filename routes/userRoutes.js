@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -18,6 +18,9 @@ router.post("/register", validate(registerValidator), register);
 
 // user requirements: 
 router.post("/requirements/:id", authenticate, validate(requirementsValidator), setUserRequirements);
+
+// Get requirements options: 
+router.get("/getRequirementsOptions", getReqOptions);
 
 // Login:
 router.post("/login", validate(loginValidator), loginUser);

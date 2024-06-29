@@ -94,6 +94,29 @@ module.exports.setUserRequirements = async (req, res) => {
     }
 }
 
+// Get requirements options: (list)
+module.exports.getReqOptions = async (req, res) => {
+    try {
+        // const designRequirementsOptions = await UserReq.find(designRequirements );
+        const designRequirementsOptions = UserReq.schema.path('designRequirements').enumValues;
+        const nicheOptions = UserReq.schema.path('niche').enumValues;
+        const fontOptions = UserReq.schema.path('fontOptions').enumValues;
+        const colorOptions = UserReq.schema.path('colorOptions').enumValues;
+        return res.status(200).json({
+            success: true,
+            designRequirements: designRequirementsOptions,
+            niche: nicheOptions,
+            fontOptions: fontOptions,
+            colorOptions: colorOptions,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
 // LOGIN:
 module.exports.loginUser = async (req, res) => {
     try {
