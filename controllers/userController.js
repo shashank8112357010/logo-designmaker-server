@@ -319,6 +319,37 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
+// Get All Users (Admin only): 
+module.exports.getAllUsersList = async (req, res) => {
+    try {
+        // const role = req.user.role;
+        // console.log(role);
+        // if (role !== 'admin') {
+        //     return res.status(401).json({
+        //         success: false,
+        //         message: "You are not authorized to access the list of all users"
+        //     })
+        // }
+
+        const pageSize = 4;         // number of documents per page (limit)
+        const { pageNum } = req.query;
+        // const limit = 5;
+        const DocToskip = (pageNum - 1) * pageSize
+
+        const list = await User.find().skip(DocToskip).limit(pageSize);
+        return res.status(200).json({
+            success: true,
+            message: "Users list",
+            list
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
 // Searching user: 
 module.exports.searchUser = async (req, res) => {
     try {
