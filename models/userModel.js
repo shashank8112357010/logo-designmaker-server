@@ -61,6 +61,10 @@ const userSchema = mongoose.Schema({
     twoFactor: {
         type: Boolean,
         default: false,
+    },
+    ifUserReq: {
+        type: Boolean,
+        default: false,
     }
 })
 

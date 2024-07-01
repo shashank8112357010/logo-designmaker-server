@@ -66,7 +66,23 @@ module.exports.requirementsValidator = [
 
     body("brandName")
         .notEmpty().withMessage("Provide a brandName to create logo")
-        .isString().withMessage("Please enter a valid brandName")
+        .isString().withMessage("Please enter a valid brandName"),
+
+    body("slogan")
+        .notEmpty().withMessage("Provide a slogan to create logo")
+        .isString().withMessage("Please enter a valid slogan"),
+
+    body("designRequirements")
+        .notEmpty().withMessage("Please select a design requirement"),
+
+    body("niche")
+        .notEmpty().withMessage("Please select a niche"),
+
+    body("fontOptions")
+        .notEmpty().withMessage("Please select fontOptions"),
+
+    body("colorOptions")
+        .notEmpty().withMessage("Please select colorOptions"),
 ]
 
 

@@ -212,20 +212,59 @@ module.exports.loginUser = async (req, res) => {
             res.cookie("token", token, tokenOptions);
             res.cookie("refresh-token", refreshToken, refreshTokenOptions);
 
-            return res.status(200).json({
-                success: true,
-                message: "Logged in successfully!!",
-                token,
-                refreshToken,
-                user: {
-                    userId: user._id,
-                    workEmail: user.workEmail,
-                    phoneNo: user.phoneNo,
-                    profileImg: user.profileImg.url,
-                    role: user.role,
-                    username: user.username
-                }
-            })
+            const userReq = await UserReq.findOne({ userId: user._id })
+            // console.log(userReq)
+            // console.log(user.ifUserReq)
+            if (!userReq) {
+                user.ifUserReq = false;
+                await user.save();
+                return res.status(400).json({
+                    success: true,
+                    message: "You need to set up user requirements first. ",
+                    token,
+                    refreshToken,
+                    user: {
+                        userId: user._id,
+                        workEmail: user.workEmail,
+                        phoneNo: user.phoneNo,
+                        profileImg: user.profileImg.url,
+                        role: user.role,
+                        username: user.username
+                    }
+                })
+            }
+            else {
+                user.ifUserReq = true;
+                await user.save();
+                return res.status(200).json({
+                    success: true,
+                    message: "Logged in successfully with account set up done",
+                    token,
+                    refreshToken,
+                    user: {
+                        userId: user._id,
+                        workEmail: user.workEmail,
+                        phoneNo: user.phoneNo,
+                        profileImg: user.profileImg.url,
+                        role: user.role,
+                        username: user.username
+                    }
+                })
+            }
+            // return res.status(200).json({
+            //     success: true,
+            //     message: "Logged in successfully!!",
+            //     token,
+            //     refreshToken,
+            //     user: {
+            //         userId: user._id,
+            //         workEmail: user.workEmail,
+            //         phoneNo: user.phoneNo,
+            //         profileImg: user.profileImg.url,
+            //         role: user.role,
+            //         username: user.username
+            //     }
+            // })
         }
     } catch (error) {
         return res.status(500).json({
@@ -261,7 +300,7 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
-        console.log(userDbOTP, "userDbOTP");
+        // console.log(userDbOTP, "userDbOTP");
 
         if (userDbOTP.otpCode !== otp) {
             return res.status(401).json({
@@ -294,20 +333,59 @@ module.exports.verifyOTP = async (req, res) => {
         res.cookie("token", token, tokenOptions);
         res.cookie("refresh-token", refreshToken, refreshTokenOptions);
 
-        return res.status(200).json({
-            success: true,
-            message: "Logged in Successfully",
-            token,
-            refreshToken,
-            user: {
-                userId: user._id,
-                workEmail: user.workEmail,
-                phoneNo: user.phoneNo,
-                profileImg: user.profileImg,
-                role: user.role,
-                username: user.username
-            }
-        });
+        const userReq = await UserReq.findOne({ userId: user._id })
+        // console.log(userReq)
+        if (!userReq) {
+            user.ifUserReq = false;
+            await user.save();
+            return res.status(400).json({
+                success: true,
+                message: "You need to set up user requirements first. ",
+                token,
+                refreshToken,
+                user: {
+                    userId: user._id,
+                    workEmail: user.workEmail,
+                    phoneNo: user.phoneNo,
+                    profileImg: user.profileImg.url,
+                    role: user.role,
+                    username: user.username
+                }
+            })
+        }
+        else {
+            user.ifUserReq = true;
+            await user.save();
+            return res.status(200).json({
+                success: true,
+                message: "Logged in successfully with account set up done",
+                token,
+                refreshToken,
+                user: {
+                    userId: user._id,
+                    workEmail: user.workEmail,
+                    phoneNo: user.phoneNo,
+                    profileImg: user.profileImg.url,
+                    role: user.role,
+                    username: user.username
+                }
+            })
+        }
+
+        // return res.status(200).json({
+        //     success: true,
+        //     message: "Logged in Successfully",
+        //     token,
+        //     refreshToken,
+        //     user: {
+        //         userId: user._id,
+        //         workEmail: user.workEmail,
+        //         phoneNo: user.phoneNo,
+        //         profileImg: user.profileImg,
+        //         role: user.role,
+        //         username: user.username
+        //     }
+        // });
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -442,6 +520,60 @@ module.exports.getUserDetailsAndReq = async (req, res) => {
         })
     }
 }
+
+// Edit user requirements: (Choices)
+module.exports.editRequirements = async (req, res) => {
+    try {
+        const userId = req.user;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        let userReq = await UserReq.findOne({ userId: userId });
+        if (!userReq) {
+            // userReq = new UserReq({ userId: userId });
+            return res.status(400).json({
+                success: false,
+                message: "You can't edit requirements as you have not added requirements till now"
+            })
+        }
+
+        const { brandName, slogan, designRequirements, niche, fontOptions, colorOptions } = req.body;
+
+        if (brandName) userReq.brandName = brandName
+        if (slogan) userReq.slogan = slogan
+        if (designRequirements) userReq.designRequirements = designRequirements
+        if (niche) userReq.niche = niche
+        if (fontOptions) userReq.fontOptions = fontOptions
+        if (colorOptions) userReq.colorOptions = colorOptions
+
+        await userReq.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Requirements edited successfully",
+            UserReq: {
+                userId: user._id,
+                brandName: userReq.brandName,
+                slogan: userReq.slogan,
+                designRequirements: userReq.designRequirements,
+                niche: userReq.niche,
+                fontOptions: userReq.fontOptions,
+                colorOptions: userReq.colorOptions
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
 
 // Edit user profile:
 module.exports.editProfile = async (req, res) => {

@@ -90,7 +90,7 @@ module.exports.getTicketById = async (req, res) => {
         const ticket = await Ticket.findById(id);
 
         if (!ticket) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: "Ticket not found"
             })
