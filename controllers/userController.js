@@ -36,8 +36,6 @@ module.exports.register = async (req, res) => {
             // profile: req.file.path,
         })
 
-
-
         // Sending email to user when registered: 
         const htmlToSend = registerTemplate(user.username);
 
@@ -48,7 +46,7 @@ module.exports.register = async (req, res) => {
             htmlToSend
         });
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             message: "User registered successfully!!",
             user,
@@ -81,7 +79,7 @@ module.exports.setUserRequirements = async (req, res) => {
             colorOptions
         });
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
             message: "Requirements collected..",
             userReq
@@ -228,7 +226,6 @@ module.exports.loginUser = async (req, res) => {
                     username: user.username
                 }
             })
-
         }
     } catch (error) {
         return res.status(500).json({
@@ -267,7 +264,7 @@ module.exports.verifyOTP = async (req, res) => {
         console.log(userDbOTP, "userDbOTP");
 
         if (userDbOTP.otpCode !== otp) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
                 message: "Incorrect OTP"
             });
@@ -522,7 +519,7 @@ module.exports.editProfile = async (req, res) => {
 
                 return res.status(200).json({
                     success: true,
-                    message: "Profile update successfully!!",
+                    message: "Profile updated successfully!!",
                     user: {
                         userId: user._id,
                         workEmail: user.workEmail,
@@ -560,7 +557,7 @@ module.exports.changePasswordAfterAuth = async (req, res) => {
         const isMatched = await bcrypt.compare(currentPassword, user.password);
 
         if (!isMatched) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
                 message: "Incorrect current password",
             })
