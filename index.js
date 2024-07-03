@@ -50,3 +50,10 @@ mongoose.connect(MONGODB_URL).then(() => {
     console.log("DATABASE CONNECTED!!")
 }).catch((err) => console.log(err));
 
+
+// unexpected error handling 
+process.on("uncaughtException", (err) => {
+    console.log(`Logged Error from index js: ${err.stack}`);
+    server.close(() => process.exit(1));
+})
+

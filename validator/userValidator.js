@@ -122,3 +122,19 @@ module.exports.resetValidator = [
         .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("Must contain one special character")
         .isLength({ min: 8 }).withMessage("confirmPassword should contain atleast 8 characters"),
 ]
+
+
+module.exports.afterAuthPasswordValidation = [
+    body("currentPassword")
+        .notEmpty().withMessage("Please enter a currentPassword"),
+    // .isString().withMessage("Please enter a valid password")
+
+    body("newPassword")
+        .notEmpty().withMessage("Please enter a newPassword")
+        // .isString().withMessage("Please enter a valid password")
+        .matches(/[a-z]/).withMessage("newPassword must contain one lowercase letter")
+        .matches(/[0-9]/).withMessage("newPassword must contain one number")
+        .matches(/[A-Z]/).withMessage("newPassword must contain one uppercase letter")
+        .matches(/[`~!@#$%^&*()_,.?":{}|]/).withMessage("newPassword must contain one special character")
+        .isLength({ min: 8 }).withMessage("newPassword should contain atleast 8 characters"),
+]

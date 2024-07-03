@@ -62,7 +62,7 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    ifUserReq: {
+    isUserReq: {
         type: Boolean,
         default: false,
     }

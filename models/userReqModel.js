@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const userReqSchema = mongoose.Schema({
+const userReqSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'userModel',
@@ -28,26 +28,37 @@ const userReqSchema = mongoose.Schema({
         required: true,
     },
     designRequirements: {
-        type: String,
-        enum: ["Abstract Logos", "Lettermark Logos", "Wordmark Logos"]
+        type: [{
+            type: String,
+            enum: ["Abstract Logos", "Lettermark Logos", "Wordmark Logos"]
+        }],
+        required: true,
     },
     niche: {
-        type: String,
-        enum: ["Healthcare", "Technology", "Finance", "Education"]
+        type: [{
+            type: String,
+            enum: ["Healthcare", "Technology", "Finance", "Education"]
+        }],
+        required: true,
     },
     other: {
         type: String,
     },
     fontOptions: {
-        type: String,
-        enum: ["Serif", "Sans serif", "Monospace"]
+        type: [{
+            type: String,
+            enum: ["Roboto", "Sans serif", "Monospace"]
+        }],
+        default: [],
     },
     colorOptions: {
-        type: String,
-        enum: ["Red", "Green", "Blue"]
+        type: [{
+            type: String,
+            enum: ["Neon Colors", "Red", "Green", "Blue"]
+        }],
+        default: [],
     }
-})
-
+});
 
 const userReqModel = mongoose.model("userReqModel", userReqSchema);
 

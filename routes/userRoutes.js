@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements } = require("../controllers/userController");
-const { registerValidator, loginValidator, requirementsValidator, resetValidator } = require("../validator/userValidator");
+const { registerValidator, loginValidator, requirementsValidator, resetValidator, afterAuthPasswordValidation } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
 const passport = require('passport');
@@ -41,7 +41,7 @@ router.put("/editRequirements", authenticate, editRequirements);
 router.put("/editProfile", authenticate, editProfile);
 
 // change password: (authentication)
-router.put("/changePassword", authenticate, changePasswordAfterAuth);
+router.put("/changePassword", authenticate, validate(afterAuthPasswordValidation), changePasswordAfterAuth);
 
 // change password without login: 
 // Route to display the reset password screen

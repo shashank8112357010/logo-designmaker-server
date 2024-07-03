@@ -216,13 +216,12 @@ module.exports.loginUser = async (req, res) => {
             // console.log(userReq)
             // console.log(user.ifUserReq)
             if (!userReq) {
-                user.ifUserReq = false;
-                await user.save();
                 return res.status(400).json({
                     success: true,
                     message: "You need to set up user requirements first. ",
-                    token,
-                    refreshToken,
+                    // token,
+                    // refreshToken,
+                    isUserReq: false,
                     user: {
                         userId: user._id,
                         workEmail: user.workEmail,
@@ -234,13 +233,14 @@ module.exports.loginUser = async (req, res) => {
                 })
             }
             else {
-                user.ifUserReq = true;
+                user.isUserReq = true;
                 await user.save();
                 return res.status(200).json({
                     success: true,
                     message: "Logged in successfully with account set up done",
                     token,
                     refreshToken,
+                    isUserReq: true,
                     user: {
                         userId: user._id,
                         workEmail: user.workEmail,
@@ -336,13 +336,12 @@ module.exports.verifyOTP = async (req, res) => {
         const userReq = await UserReq.findOne({ userId: user._id })
         // console.log(userReq)
         if (!userReq) {
-            user.ifUserReq = false;
-            await user.save();
             return res.status(400).json({
                 success: true,
                 message: "You need to set up user requirements first. ",
-                token,
-                refreshToken,
+                // token,
+                // refreshToken,
+                isUserReq: false,
                 user: {
                     userId: user._id,
                     workEmail: user.workEmail,
@@ -354,13 +353,14 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
         else {
-            user.ifUserReq = true;
+            user.isUserReq = true;
             await user.save();
             return res.status(200).json({
                 success: true,
                 message: "Logged in successfully with account set up done",
                 token,
                 refreshToken,
+                isUserReq: true,
                 user: {
                     userId: user._id,
                     workEmail: user.workEmail,
