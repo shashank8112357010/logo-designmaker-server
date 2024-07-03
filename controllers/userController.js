@@ -216,7 +216,7 @@ module.exports.loginUser = async (req, res) => {
             // console.log(userReq)
             // console.log(user.ifUserReq)
             if (!userReq) {
-                return res.status(400).json({
+                return res.status(200).json({
                     success: true,
                     message: "You need to set up user requirements first. ",
                     // token,
@@ -336,7 +336,7 @@ module.exports.verifyOTP = async (req, res) => {
         const userReq = await UserReq.findOne({ userId: user._id })
         // console.log(userReq)
         if (!userReq) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: true,
                 message: "You need to set up user requirements first. ",
                 // token,
