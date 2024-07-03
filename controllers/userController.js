@@ -604,9 +604,18 @@ module.exports.editProfile = async (req, res) => {
                 });
             }
 
+            const userReq = await UserReq.findOne({ userId: id });
+            if (!userReq) {
+                return res.status(404).json({
+                    message: "User request not found"
+                });
+            }
+
             // updating profile if details are provided: 
-            if (firstName) user.firstName = firstName;
-            if (lastName) user.lastName = lastName;
+            // if (firstName) user.firstName = firstName;
+            // if (lastName) user.lastName = lastName;
+            if (firstName) userReq.firstName = firstName;
+            if (lastName) userReq.lastName = lastName;
             if (username) user.username = username;
             if (workEmail) user.workEmail = workEmail;
             if (phoneNo) user.phoneNo = phoneNo;
@@ -651,22 +660,39 @@ module.exports.editProfile = async (req, res) => {
 
                 return res.status(200).json({
                     success: true,
-                    message: "Profile updated successfully!!",
-                    user: {
-                        userId: user._id,
-                        workEmail: user.workEmail,
-                        phoneNo: user.phoneNo,
-                        profileImg: user.profileImg,
-                        role: user.role,
-                        username: user.username
-                    }
+                    message: "Profile Image Updated successfully!!",
+                    // user: {
+                    //     // userId: user._id,
+                    //     // workEmail: user.workEmail,
+                    //     // phoneNo: user.phoneNo,
+                    //     profileImg: user.profileImg,
+                    //     // role: user.role,
+                    //     // username: user.username
+                    // }
+                    user
                 })
             }
+
+            await user.save();
+            await userReq.save();
+            return res.status(200).json({
+                success: true,
+                message: "Profile updated successfully!!",
+                user
+                // user: {
+                //     userId: user._id,
+                //     workEmail: user.workEmail,
+                //     phoneNo: user.phoneNo,
+                //     profileImg: user.profileImg,
+                //     role: user.role,
+                //     username: user.username
+                // }
+            })
         }
         catch (error) {
             return res.status(500).json({
                 success: false,
-                // message: "failed line 398",
+                message: "Error updating user profile",
                 error: error.message
             });
         }

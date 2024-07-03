@@ -17,7 +17,7 @@ const { checkFileSizeMiddleware } = require("../middlewares/multer");
 router.post("/register", validate(registerValidator), register);
 
 // user requirements: 
-router.post("/requirements/:id", authenticate, validate(requirementsValidator), setUserRequirements);
+router.post("/requirements/:id", /*authenticate,*/ validate(requirementsValidator), setUserRequirements);
 
 // Get requirements options: 
 router.get("/getRequirementsOptions", getReqOptions);
