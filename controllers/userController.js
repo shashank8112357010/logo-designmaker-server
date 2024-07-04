@@ -15,6 +15,7 @@ const mongoose = require('mongoose');
 const otpModel = require("../models/otpModel");
 const { uploadImg } = require("../utils/cloudinary");
 const multer = require("multer");
+const Preference = require("../models/preferenceModel");
 
 
 // REGISTER USER:
@@ -607,7 +608,7 @@ module.exports.editProfile = async (req, res) => {
             const userReq = await UserReq.findOne({ userId: id });
             if (!userReq) {
                 return res.status(404).json({
-                    message: "User request not found"
+                    message: "User requirements not found"
                 });
             }
 
@@ -669,7 +670,11 @@ module.exports.editProfile = async (req, res) => {
                     //     // role: user.role,
                     //     // username: user.username
                     // }
-                    user
+                    user,
+                    userReq: {
+                        firstName: userReq.firstName,
+                        lastName: userReq.lastName
+                    }
                 })
             }
 
@@ -678,7 +683,11 @@ module.exports.editProfile = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 message: "Profile updated successfully!!",
-                user
+                user,
+                userReq: {
+                    firstName: userReq.firstName,
+                    lastName: userReq.lastName
+                }
                 // user: {
                 //     userId: user._id,
                 //     workEmail: user.workEmail,
@@ -848,6 +857,49 @@ module.exports.resetPassword = async (req, res) => {
     }
 }
 
+// set notifications: 
+module.exports.setPreferences = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { generalNotification, platformUpdates, promotion } = req.query;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            })
+        }
+
+        let data = await Preference.findOne({ userId: userId });
+
+        if (!data) {
+            data = await Preference.create({
+                userId: userId,
+                generalNotification,
+                platformUpdates,
+                promotion
+            })
+        } else {
+            if (generalNotification) data.generalNotification = generalNotification
+            if (platformUpdates) data.platformUpdates = platformUpdates
+            if (promotion) data.promotion = promotion
+        }
+
+        await data.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Preferences updated",
+            data
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
 
 // ENABLE TWO FACTOR: 
 module.exports.enableTwoFactor = async (req, res) => {

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const notificationSchema = mongoose.Schema({
+const preferenceSchema = mongoose.Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'userModel'
@@ -10,16 +10,16 @@ const notificationSchema = mongoose.Schema({
         // type: [{
         type: String,
         enum: ["USD", "INR"],
+        default: "USD"
         // }],
-        required: true,
     },
 
     timeZone: {
         type: String,
         enum: ["(GMT-12:00) International Date Line West", "(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi"],
-        required: true,
+        default: "(GMT-12:00) International Date Line West"
     },
-    generalNotifications: {
+    generalNotification: {
         type: Boolean,
         default: true,
     },
@@ -33,6 +33,6 @@ const notificationSchema = mongoose.Schema({
     }
 })
 
-const notificationModel = mongoose.model("notificationModel", notificationSchema);
+const preferenceModel = mongoose.model("preferenceModel", preferenceSchema);
 
-module.exports = notificationModel;
+module.exports = preferenceModel;
