@@ -322,6 +322,9 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
+        // if correct otp is entered, it should be deleted from the db..
+        await OTP.deleteOne({ userId });
+
         const token = await generateToken(user);
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
