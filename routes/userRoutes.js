@@ -43,31 +43,6 @@ router.put("/editProfile", authenticate, editProfile);
 // change password: (authentication)
 router.put("/changePassword", authenticate, validate(afterAuthPasswordValidation), changePasswordAfterAuth);
 
-// change password without login: 
-// Route to display the reset password screen
-router.get('/resetPassword/:resetToken', async (req, res) => {
-    const resetToken = req.params.resetToken;
-    const tokenDoc = await Token.findOne({ token: resetToken });
-
-    if (!tokenDoc) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid token',
-        });
-    }
-
-    const user = await User.findById(tokenDoc.userId);
-
-    if (!user) {
-        return res.status(400).json({
-            success: false,
-            message: 'User not found',
-        });
-    }
-
-    res.send(resetPasswordScreen(resetToken, user.workEmail));
-}, validate(resetValidator));
-
 // providing reset link:
 router.post("/resetPasswordLink", changePasswordBeforeAuth);
 // changing password:
