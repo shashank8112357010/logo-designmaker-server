@@ -21,7 +21,7 @@ const preferenceSchema = mongoose.Schema({
     },
     generalNotification: {
         type: Boolean,
-        default: true,
+        default: false,
     },
     platformUpdates: {
         type: Boolean,
@@ -29,7 +29,7 @@ const preferenceSchema = mongoose.Schema({
     },
     promotion: {
         type: Boolean,
-        default: true,
+        default: false,
     }
 })
 

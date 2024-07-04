@@ -37,6 +37,8 @@ module.exports.register = async (req, res) => {
             // profile: req.file.path,
         })
 
+        let data = await Preference.create({ userId: user._id });
+
         // Sending email to user when registered: 
         const htmlToSend = registerTemplate(user.username);
 
@@ -51,6 +53,7 @@ module.exports.register = async (req, res) => {
             success: true,
             message: "User registered successfully!!",
             user,
+            data
         })
     } catch (error) {
         return res.status(500).json({
@@ -594,7 +597,7 @@ module.exports.editProfile = async (req, res) => {
             })
         }
         try {
-            const id = req.user;
+            const { id } = req.user;
             const { firstName, lastName, workEmail, phoneNo, username, address, city, postalCode, country } = req.body;
 
             // finding the user:
@@ -874,17 +877,14 @@ module.exports.setPreferences = async (req, res) => {
         let data = await Preference.findOne({ userId: userId });
 
         if (!data) {
-            data = await Preference.create({
-                userId: userId,
-                generalNotification,
-                platformUpdates,
-                promotion
+            return res.status(404).json({
+                success: false,
+                message: "Data for user is not found"
             })
-        } else {
-            if (generalNotification) data.generalNotification = generalNotification
-            if (platformUpdates) data.platformUpdates = platformUpdates
-            if (promotion) data.promotion = promotion
         }
+        if (generalNotification) data.generalNotification = generalNotification
+        if (platformUpdates) data.platformUpdates = platformUpdates
+        if (promotion) data.promotion = promotion
 
         await data.save();
 
