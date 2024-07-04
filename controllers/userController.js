@@ -879,12 +879,6 @@ module.exports.setPreferences = async (req, res) => {
 
         let data = await Preference.findOne({ userId: userId });
 
-        if (!data) {
-            return res.status(404).json({
-                success: false,
-                message: "Data for user is not found"
-            })
-        }
         if (generalNotification) data.generalNotification = generalNotification
         if (platformUpdates) data.platformUpdates = platformUpdates
         if (promotion) data.promotion = promotion
