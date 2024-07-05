@@ -60,6 +60,9 @@ router.post("/createService", authenticate, createService);
 // get my services: 
 router.get("/myServices", authenticate, getMyServices);
 
+// update service: 
+router.put("/updateService/:serviceId", authenticate, updateService);
+
 // Delete a user (Admin):
 router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);
 

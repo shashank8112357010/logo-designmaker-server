@@ -619,6 +619,13 @@ module.exports.editProfile = async (req, res) => {
                 });
             }
 
+            if (!workEmail || !phoneNo || !username) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Provide workEmail, phoneNo and username"
+                })
+            }
+
             // updating profile if details are provided: 
             // if (firstName) user.firstName = firstName;
             // if (lastName) user.lastName = lastName;
@@ -1182,6 +1189,71 @@ module.exports.getMyServices = async (req, res) => {
             message: "Services found!!",
             myServices
         })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
+// update Service: 
+module.exports.updateService = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { serviceId } = req.params;
+
+        // console.log(serviceId);
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const { service, status, date, duration } = req.body;
+
+        let currentDate = Date.now()
+        const currentFormattedDate = formatDate(currentDate);
+        // console.log("current date: ", currentDate);
+        // console.log("current formatted date: ", currentFormattedDate)
+
+        const formattedDate = formatDate(date);
+        // console.log("date: ", date);
+        // console.log("formattedDate: ", formattedDate)
+
+        const existingService = await Services.find({
+            date: formattedDate
+        })
+
+        // console.log(existingService)
+
+        if (existingService.length == 3) {
+            return res.status(400).json({
+                success: false,
+                message: "Services are already booked for the date. Choose another date.."
+            })
+        }
+
+        if (formattedDate < currentFormattedDate) {
+            return res.status(400).json({
+                success: false,
+                message: "Services can't be created for past dates..",
+            })
+        }
+
+        const myService = await Services.findByIdAndUpdate(serviceId, { service, status, formattedDate, duration }, { new: true });
+        // await myService.save();
+        // console.log(myService)
+
+        return res.status(200).json({
+            success: true,
+            message: "Service updated successfully",
+            myService,
+        })
+
     } catch (error) {
         return res.status(500).json({
             success: false,
