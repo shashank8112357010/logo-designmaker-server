@@ -623,9 +623,36 @@ module.exports.editProfile = async (req, res) => {
             // if (lastName) user.lastName = lastName;
             if (firstName) userReq.firstName = firstName;
             if (lastName) userReq.lastName = lastName;
-            if (username) user.username = username;
-            if (workEmail) user.workEmail = workEmail;
-            if (phoneNo) user.phoneNo = phoneNo;
+            // if (username) user.username = username;
+            if (username) {
+                const existingUsername = await User.findOne({ username });
+                if (existingUsername) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Can't use this username as user with this username already exists.."
+                    })
+                }
+            }
+            // if (workEmail) user.workEmail = workEmail;
+            if (workEmail) {
+                const existingEmail = await User.findOne({ workEmail });
+                if (existingEmail) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Can't use this workEmail as user with this workEmail already exists.."
+                    })
+                }
+            }
+            // if (phoneNo) user.phoneNo = phoneNo;
+            if (phoneNo) {
+                const existingPhoneNo = await User.findOne({ phoneNo });
+                if (existingPhoneNo) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Can't use this phoneNo as user with this phoneNo already exists.."
+                    })
+                }
+            }
             if (address) user.address = address;
             if (city) user.city = city;
             if (postalCode) user.postalCode = postalCode;
