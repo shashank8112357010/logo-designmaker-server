@@ -634,6 +634,7 @@ module.exports.editProfile = async (req, res) => {
                             message: "Can't use this username as user with this username already exists.."
                         })
                     }
+                    user.username = username;
                 }
             }
             // if (workEmail) user.workEmail = workEmail;
@@ -646,6 +647,7 @@ module.exports.editProfile = async (req, res) => {
                             message: "Can't use this workEmail as user with this workEmail already exists.."
                         })
                     }
+                    user.workEmail = workEmail;
                 }
             }
             // if (phoneNo) user.phoneNo = phoneNo;
@@ -658,6 +660,7 @@ module.exports.editProfile = async (req, res) => {
                             message: "Can't use this phoneNo as user with this phoneNo already exists.."
                         })
                     }
+                    user.phoneNo = phoneNo;
                 }
             }
             if (address) user.address = address;
