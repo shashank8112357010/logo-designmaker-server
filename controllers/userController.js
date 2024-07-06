@@ -84,10 +84,27 @@ module.exports.setUserRequirements = async (req, res) => {
             colorOptions
         });
 
+        const token = await generateToken(user);
+        // generating refresh token:
+        const refreshToken = await generateRefreshToken(user);
+        const tokenOptions = {
+            expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
+            httpOnly: true,
+        };
+        const refreshTokenOptions = {
+            expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+            httpOnly: true,
+        };
+        res.cookie("token", token, tokenOptions);
+        res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+
+
         return res.status(201).json({
             success: true,
             message: "Requirements collected..",
-            userReq
+            userReq,
+            token,
+            refreshToken
         })
     } catch (error) {
         return res.status(500).json({
@@ -141,6 +158,8 @@ module.exports.loginUser = async (req, res) => {
                 message: "User not found"
             });
         }
+
+        const preference = await Preference.findOne({ userId: user._id });
 
         // if boolean value keepLoggedIn is provided; update the value in DB and save:
         if (keepLoggedIn) {
@@ -233,7 +252,11 @@ module.exports.loginUser = async (req, res) => {
                         phoneNo: user.phoneNo,
                         profileImg: user.profileImg.url,
                         role: user.role,
-                        username: user.username
+                        username: user.username,
+                        twoFactor: user.twoFactor,
+                        generalNotification: preference.generalNotification,
+                        platformUpdates: preference.platformUpdates,
+                        promotion: preference.promotion
                     }
                 })
             }
@@ -252,7 +275,11 @@ module.exports.loginUser = async (req, res) => {
                         phoneNo: user.phoneNo,
                         profileImg: user.profileImg.url,
                         role: user.role,
-                        username: user.username
+                        username: user.username,
+                        twoFactor: user.twoFactor,
+                        generalNotification: preference.generalNotification,
+                        platformUpdates: preference.platformUpdates,
+                        promotion: preference.promotion
                     }
                 })
             }
@@ -323,6 +350,8 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
+        const preference = await Preference.findOne({ userId: user._id });
+
         // if correct otp is entered, it should be deleted from the db..
         await OTP.deleteOne({ userId });
 
@@ -356,7 +385,11 @@ module.exports.verifyOTP = async (req, res) => {
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg.url,
                     role: user.role,
-                    username: user.username
+                    username: user.username,
+                    twoFactor: user.twoFactor,
+                    generalNotification: preference.generalNotification,
+                    platformUpdates: preference.platformUpdates,
+                    promotion: preference.promotion
                 }
             })
         }
@@ -375,7 +408,11 @@ module.exports.verifyOTP = async (req, res) => {
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg.url,
                     role: user.role,
-                    username: user.username
+                    username: user.username,
+                    twoFactor: user.twoFactor,
+                    generalNotification: preference.generalNotification,
+                    platformUpdates: preference.platformUpdates,
+                    promotion: preference.promotion
                 }
             })
         }
