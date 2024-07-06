@@ -38,6 +38,7 @@ module.exports.register = async (req, res) => {
             // profile: req.file.path,
         })
 
+        // setting default preferences for user: 
         let data = await Preference.create({ userId: user._id });
 
         // Sending email to user when registered: 
@@ -70,6 +71,14 @@ module.exports.setUserRequirements = async (req, res) => {
         const { id } = req.params;
         const { firstName, lastName, businessName, brandName, slogan, designRequirements, niche, other, fontOptions, colorOptions } = req.body;
 
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
         const userReq = await UserReq.create({
             userId: id,
             firstName,
@@ -84,6 +93,7 @@ module.exports.setUserRequirements = async (req, res) => {
             colorOptions
         });
 
+        // generating token for user: 
         const token = await generateToken(user);
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
@@ -97,7 +107,6 @@ module.exports.setUserRequirements = async (req, res) => {
         };
         res.cookie("token", token, tokenOptions);
         res.cookie("refresh-token", refreshToken, refreshTokenOptions);
-
 
         return res.status(201).json({
             success: true,
@@ -159,6 +168,7 @@ module.exports.loginUser = async (req, res) => {
             });
         }
 
+        // getting preferences of user: 
         const preference = await Preference.findOne({ userId: user._id });
 
         // if boolean value keepLoggedIn is provided; update the value in DB and save:
@@ -182,17 +192,14 @@ module.exports.loginUser = async (req, res) => {
         // Setting Session Data: 
         req.session.user = user;
 
-        // generating cookies: 
-        // const options = {
-        //     expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-        //     httpOnly: true,
-        // };
-        // console.log("Reaching outside", user)
-
         // if two factor authentication is enabled, the user will be provided with an OTP for verification:
         if (user.twoFactor === true) {
             // generating and saving OTP for user: 
             const providedOTP = await generateOTP();
+
+            // delete all previous otp: 
+            await OTP.deleteMany({ userId: user._id });
+
             const otpDoc = new OTP({
                 userId: user.id,
                 otpCode: providedOTP
@@ -227,11 +234,6 @@ module.exports.loginUser = async (req, res) => {
                 expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
                 httpOnly: true,
             };
-            // return res.status(200).cookie("cookie", token, options).json({
-            //     success: true,
-            //     message: "Logged in successfully",
-            //     token,
-            // });
 
             res.cookie("token", token, tokenOptions);
             res.cookie("refresh-token", refreshToken, refreshTokenOptions);
@@ -239,6 +241,8 @@ module.exports.loginUser = async (req, res) => {
             const userReq = await UserReq.findOne({ userId: user._id })
             // console.log(userReq)
             // console.log(user.ifUserReq)
+
+            // if user has not set up requirements (account set up not done), directed to account set up page and token will be provided when account set up is done: 
             if (!userReq) {
                 return res.status(200).json({
                     success: true,
@@ -283,20 +287,6 @@ module.exports.loginUser = async (req, res) => {
                     }
                 })
             }
-            // return res.status(200).json({
-            //     success: true,
-            //     message: "Logged in successfully!!",
-            //     token,
-            //     refreshToken,
-            //     user: {
-            //         userId: user._id,
-            //         workEmail: user.workEmail,
-            //         phoneNo: user.phoneNo,
-            //         profileImg: user.profileImg.url,
-            //         role: user.role,
-            //         username: user.username
-            //     }
-            // })
         }
     } catch (error) {
         return res.status(500).json({
@@ -313,7 +303,7 @@ module.exports.verifyOTP = async (req, res) => {
         if (!userId) {
             return res.status(401).json({
                 success: false,
-                message: "User Id  required"
+                message: "User Id required"
             });
         }
         const { otp } = req.body;
@@ -350,11 +340,13 @@ module.exports.verifyOTP = async (req, res) => {
             })
         }
 
+        // getting preferences of user: 
         const preference = await Preference.findOne({ userId: user._id });
 
         // if correct otp is entered, it should be deleted from the db..
         await OTP.deleteOne({ userId });
 
+        // generating token:
         const token = await generateToken(user);
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
@@ -416,21 +408,6 @@ module.exports.verifyOTP = async (req, res) => {
                 }
             })
         }
-
-        // return res.status(200).json({
-        //     success: true,
-        //     message: "Logged in Successfully",
-        //     token,
-        //     refreshToken,
-        //     user: {
-        //         userId: user._id,
-        //         workEmail: user.workEmail,
-        //         phoneNo: user.phoneNo,
-        //         profileImg: user.profileImg,
-        //         role: user.role,
-        //         username: user.username
-        //     }
-        // });
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -484,7 +461,7 @@ module.exports.searchUser = async (req, res) => {
         }
 
         const users = await User.find(searchQuery);
-        if (!users) {
+        if (users.length == 0) {
             return res.status(404).json({
                 success: false,
                 message: "No users found",

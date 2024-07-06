@@ -83,7 +83,7 @@ router.get('/auth/google/callback', passport.authenticate('google', { failureRed
 )
 
 // search users: 
-router.get("/search", searchUser);
+router.get("/search", authenticate, searchUser);
 // upload profile picture:
 router.post("/uploadprofile", authenticate, uploadProfilePicture)
 

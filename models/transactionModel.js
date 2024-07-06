@@ -22,8 +22,12 @@ const transactionSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    // requestBtn: {
-    //     type: Boolean,
-    //     default: false,
-    // }
+    refundRequestBtn: {
+        type: Boolean,
+        default: false,
+    }
 })
+
+const transactionModel = mongoose.model("transactionModel", transactionSchema);
+
+module.exports = transactionModel;
