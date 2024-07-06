@@ -23,6 +23,14 @@ module.exports.upload = multer({
     }
 }).single('profileImg');
 
+module.exports.uploadFiles = multer({
+    storage: storage,
+    limits: { fileSize: maxSize }, // 1MB limit
+    fileFilter: (req, file, cb) => {
+        checkFileType(file, cb);
+    }
+}).array('files');
+
 // Check file type
 function checkFileType(file, cb) {
     const filetypes = /jpeg|jpg|png/;

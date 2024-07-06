@@ -27,13 +27,11 @@ const servicesSchema = mongoose.Schema({
         type: String,
     },
     files: [{
-        fileDetails: {
-            fileURL: {
-                type: String,
-            },
-            fileName: {
-                type: String,
-            }
+        fileURL: {
+            type: String,
+        },
+        fileName: {
+            type: String,
         }
     }]
 })

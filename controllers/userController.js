@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { upload } = require("../middlewares/multer");
+const { upload, uploadFiles } = require("../middlewares/multer");
 const { generateOTP } = require("../helper/generate");
 const OTP = require("../models/otpModel")
 const agenda = require("../helper/sendEmail");
@@ -1078,10 +1078,11 @@ const generateRefreshToken = async (user) => {
 
 // function to format date to "yyyy-mm-dd" format
 function formatDate(date) {
-    var d = new Date(date),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+    let d = new Date(date)
+
+    let month = '' + (d.getMonth() + 1)
+    let day = '' + d.getDate()
+    let year = d.getFullYear();
 
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
@@ -1102,7 +1103,7 @@ module.exports.createService = async (req, res) => {
             })
         }
 
-        const { service, status, date, duration } = req.body;
+        const { service, status, date, /*duration*/ } = req.body;
 
         let currentDate = Date.now()
         const currentFormattedDate = formatDate(currentDate);
@@ -1113,6 +1114,13 @@ module.exports.createService = async (req, res) => {
         console.log("date: ", date);
         console.log("formattedDate: ", formattedDate)
 
+        // if (formattedDate == 'NaN-NaN-NaN') {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Invalid date provided. Select a valid date"
+        //     });
+        // }
+
         const existingService = await Services.find({
             date: formattedDate
         })
@@ -1122,10 +1130,9 @@ module.exports.createService = async (req, res) => {
         if (existingService.length == 3) {
             return res.status(400).json({
                 success: false,
-                message: "Services are already booked for the date. Choose another date.."
+                message: "3 Services are already booked for the date. Choose another date.."
             })
         }
-
 
         // // service can not be created for previous date: 
         // if (date <= Date.now()) {
@@ -1146,7 +1153,7 @@ module.exports.createService = async (req, res) => {
             service,
             status,
             date: formattedDate,
-            duration
+            // duration
         });
 
         return res.status(201).json({
@@ -1197,63 +1204,92 @@ module.exports.getMyServices = async (req, res) => {
     }
 }
 
-// update Service: 
+// update Service: (ADMIN SIDE)
 module.exports.updateService = async (req, res) => {
+    uploadFiles(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({
+                success: false,
+                message: "File size too large.. Maximum size should be 1MB only",
+                error: true,
+            })
+        } else if (err) {
+            return res.status(400).json({
+                success: false,
+                message: "Error uploading files",
+                error: err
+            });
+        }
+        try {
+            // const userId = req.user.id;
+            const { serviceId } = req.params;
+
+            let userService = await Services.findById(serviceId);
+            if (!userService) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Service not found!!",
+                });
+            }
+
+            if (req.files && req.files.length > 0) {
+                const filesArray = [];
+                for (const file of req.files) {
+                    const result = await uploadImg(file.path);
+                    // console.log(result)
+                    filesArray.push({
+                        fileURL: result.secure_url,
+                        fileName: `${userService.service} - ${result.public_id}`
+                    });
+                }
+                userService.files = filesArray;
+            }
+
+            userService.status = "Completed"
+            await userService.save()
+
+            // userService = await Services.findByIdAndUpdate(serviceId, { status: "Completed" }, { new: true });
+
+            return res.status(200).json({
+                success: true,
+                message: "Service updated successfully",
+                userService,
+            })
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            })
+        }
+    })
+}
+
+// delete a service: 
+module.exports.deleteService = async (req, res) => {
     try {
-        const userId = req.user.id;
+        // const userId = req.user.id;
         const { serviceId } = req.params;
 
-        // console.log(serviceId);
+        // const user = await User.findById(userId);
+        // if (!user) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "User not found",
+        //     })
+        // }
 
-        const user = await User.findById(userId);
-        if (!user) {
+        const myService = await Services.findByIdAndDelete(serviceId);
+        if (!myService) {
             return res.status(404).json({
                 success: false,
-                message: "User not found"
-            })
+                message: "Service not found",
+            });
         }
-
-        const { service, status, date, duration } = req.body;
-
-        let currentDate = Date.now()
-        const currentFormattedDate = formatDate(currentDate);
-        // console.log("current date: ", currentDate);
-        // console.log("current formatted date: ", currentFormattedDate)
-
-        const formattedDate = formatDate(date);
-        // console.log("date: ", date);
-        // console.log("formattedDate: ", formattedDate)
-
-        const existingService = await Services.find({
-            date: formattedDate
-        })
-
-        // console.log(existingService)
-
-        if (existingService.length == 3) {
-            return res.status(400).json({
-                success: false,
-                message: "Services are already booked for the date. Choose another date.."
-            })
-        }
-
-        if (formattedDate < currentFormattedDate) {
-            return res.status(400).json({
-                success: false,
-                message: "Services can't be created for past dates..",
-            })
-        }
-
-        const myService = await Services.findByIdAndUpdate(serviceId, { service, status, formattedDate, duration }, { new: true });
-        // await myService.save();
-        // console.log(myService)
 
         return res.status(200).json({
             success: true,
-            message: "Service updated successfully",
-            myService,
+            message: "Service deleted successfully.."
         })
-
     } catch (error) {
         return res.status(500).json({
             success: false,

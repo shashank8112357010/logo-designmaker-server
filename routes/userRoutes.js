@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, createService, getMyServices, updateService } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, createService, getMyServices, updateService, deleteService } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator, afterAuthPasswordValidation } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -61,7 +61,10 @@ router.post("/createService", authenticate, createService);
 router.get("/myServices", authenticate, getMyServices);
 
 // update service: 
-router.put("/updateService/:serviceId", authenticate, updateService);
+router.put("/updateService/:serviceId", authenticate, authorizeRole("admin"), updateService);
+
+// delete a service: 
+router.delete("/deleteService/:serviceId", authenticate, deleteService);
 
 // Delete a user (Admin):
 router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);
