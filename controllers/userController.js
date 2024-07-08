@@ -665,7 +665,7 @@ module.exports.editProfile = async (req, res) => {
                     if (existingEmail) {
                         return res.status(400).json({
                             success: false,
-                            message: "Can't use this workEmail as user with this workEmail already exists.."
+                            message: "Can't use this work email as user with this work email already exists.."
                         })
                     }
                     user.workEmail = workEmail;
@@ -678,7 +678,7 @@ module.exports.editProfile = async (req, res) => {
                     if (existingPhoneNo) {
                         return res.status(400).json({
                             success: false,
-                            message: "Can't use this phoneNo as user with this phoneNo already exists.."
+                            message: "Can't use this phone number as user with this phone number already exists.."
                         })
                     }
                     user.phoneNo = phoneNo;
@@ -705,8 +705,6 @@ module.exports.editProfile = async (req, res) => {
                             error: result.message
                         })
                     }
-
-
                 } catch (error) {
                     return res.status(500).json({
                         success: false,
@@ -715,31 +713,7 @@ module.exports.editProfile = async (req, res) => {
                     });
                 }
 
-                // if (req.file) {
-                //     const imgURL = `http://localhost:4000/uploads/${req.file.filename}`;
-                //     user.profileImg.key = req.file.filename;
-                //     user.profileImg.url = imgURL;
-                // }
-
                 await user.save();
-
-                return res.status(200).json({
-                    success: true,
-                    message: "Profile Image Updated successfully!!",
-                    // user: {
-                    //     // userId: user._id,
-                    //     // workEmail: user.workEmail,
-                    //     // phoneNo: user.phoneNo,
-                    //     profileImg: user.profileImg,
-                    //     // role: user.role,
-                    //     // username: user.username
-                    // }
-                    user,
-                    userReq: {
-                        firstName: userReq.firstName,
-                        lastName: userReq.lastName
-                    }
-                })
             }
 
             await user.save();
