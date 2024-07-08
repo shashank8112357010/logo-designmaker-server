@@ -6,6 +6,8 @@ require("dotenv").config();
 const MONGODB_URL = process.env.DB_URL;
 const ticketRoute = require("./routes/ticketRoutes.js");
 const userRoute = require("./routes/userRoutes.js");
+const serviceRoute = require("./routes/serviceRoutes.js");
+const transactionRoute = require("./routes/transactionRoutes.js");
 const passport = require("passport");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
@@ -39,8 +41,10 @@ require("./config/passport.js");
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use("/api/dashboard", userRoute);
+app.use("/api/dashboard", userRoute, serviceRoute, transactionRoute);
 app.use("/api/ticket", ticketRoute);
+// app.use("/api/dashboard", serviceRoute);
+// app.use("/api/dashboard", transactionRoute);
 
 // SERVER SETUP:
 const server = app.listen(PORT, console.log(`Server is running on port ${PORT}`));

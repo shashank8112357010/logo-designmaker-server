@@ -23,7 +23,7 @@ const ticketSchema = new mongoose.Schema({
         required: true,
     },
     priorityStatus: {
-        type: String,
+        type: Object,
         enum: [{ label: "New Ticket", color: "bg-blue-500" }, { label: "On-Going Ticket", color: "bg-blue-500" }, { label: "Resolved Ticket", color: "bg-blue-500" }],
         required: true,
     },

@@ -1,3 +1,4 @@
+const multer = require("multer");
 const Services = require("../models/servicesModel");
 const User = require("../models/userModel");
 
@@ -197,7 +198,7 @@ module.exports.deleteService = async (req, res) => {
             });
         }
 
-        return res.status(200).json({
+        return res.status(204).json({
             success: true,
             message: "Service deleted successfully.."
         })

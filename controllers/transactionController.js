@@ -134,7 +134,7 @@ module.exports.deleteTransaction = async (req, res) => {
                 message: "No transaction details found",
             })
         }
-        return res.status(200).json({
+        return res.status(204).json({
             success: true,
             message: "Transaction details deleted successfully"
         })

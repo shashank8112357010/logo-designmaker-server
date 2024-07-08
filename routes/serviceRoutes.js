@@ -1,6 +1,9 @@
 const express = require("express");
-const { createService, getMyServices, updateService, deleteService } = require("../controllers/serviceController");
 const router = express.Router();
+
+const { createService, getMyServices, updateService, deleteService } = require("../controllers/serviceController");
+const authenticate = require("../middlewares/authentication");
+const { authorizeRole } = require("../middlewares/authorization");
 
 // create user service: 
 router.post("/createService", authenticate, createService);
