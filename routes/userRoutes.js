@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, createService, getMyServices, updateService, deleteService, createTransaction, getMyTransactions } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, createService, getMyServices, updateService, deleteService, createTransaction, getMyTransactions, updateTransaction, deleteTransaction } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator, afterAuthPasswordValidation } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -71,6 +71,12 @@ router.post("/createTransaction", authenticate, createTransaction);
 
 // Get my transactions: 
 router.get("/myTransactions", authenticate, getMyTransactions);
+
+// Update transaction details: 
+router.put("/updateTransaction/:transactionId", authenticate, authorizeRole("admin"), updateTransaction);
+
+// Delete transaction details:
+router.delete("/deleteTransaction/:transactionId", authenticate, deleteTransaction);
 
 // Delete a user (Admin):
 router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);

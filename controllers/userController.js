@@ -1380,3 +1380,56 @@ module.exports.getMyTransactions = async (req, res) => {
         })
     }
 }
+
+// Update transaction:
+module.exports.updateTransaction = async (req, res) => {
+    try {
+        const { transactionId } = req.params;
+        // const transactionId = req.body;
+        const transactionDetails = await Transaction.findById(transactionId);
+        if (!transactionDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "No transaction details found!!"
+            })
+        }
+
+        transactionDetails.status = "Success";
+        await transactionDetails.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Details updated successfully",
+            transactionDetails
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
+// delete transaction: 
+module.exports.deleteTransaction = async (req, res) => {
+    try {
+        const { transactionId } = req.params;
+
+        const transactionDetails = await Transaction.findByIdAndDelete(transactionId);
+        if (!transactionDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "No transaction details found",
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Transaction details deleted successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}

@@ -15,11 +15,12 @@ const ticketSchema = new mongoose.Schema({
     },
     ticketType: {
         type: String,
-        enum: ["Finance", "Design"],
+        // enum: ["Finance", "Design"],
+        required: true,
     },
     priorityStatus: {
         type: String,
-        enum: ["New Tickets", "On-Going Tickets", "Resolved Tickets"],
+        enum: ["New Ticket", "On-Going Ticket", "Resolved Ticket"],
         required: true,
     },
     ticketBody: {
