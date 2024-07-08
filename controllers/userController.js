@@ -284,7 +284,8 @@ module.exports.loginUser = async (req, res) => {
                         generalNotification: preference.generalNotification,
                         platformUpdates: preference.platformUpdates,
                         promotion: preference.promotion
-                    }
+                    },
+                    userReq,
                 })
             }
         }
@@ -405,7 +406,8 @@ module.exports.verifyOTP = async (req, res) => {
                     generalNotification: preference.generalNotification,
                     platformUpdates: preference.platformUpdates,
                     promotion: preference.promotion
-                }
+                },
+                userReq,
             })
         }
     } catch (error) {
