@@ -10,6 +10,9 @@ const transactionSchema = mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'serviceModel',
     },
+    serviceName: {
+        type: String,
+    },
     status: {
         type: String,
         enum: ["Success", "Pending", "Failed"],

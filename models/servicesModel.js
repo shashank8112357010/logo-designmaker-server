@@ -8,10 +8,10 @@ const servicesSchema = mongoose.Schema({
         ref: "userModel"
     },
     service: {
-        type: [{
-            type: String,
-            enum: ["Logo Design", "Magazine Design"],
-        }],
+        // type: [{
+        type: String,
+        enum: ["Logo Design", "Magazine Design"],
+        // }],
         required: true,
     },
     status: {

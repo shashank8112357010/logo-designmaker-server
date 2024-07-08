@@ -79,7 +79,7 @@ module.exports.otpTemplate = (username, providedOTP) => {
                                 ${otpFields}
                             </tr>
                         </table>
-                        <p style="font-size: 16px; color: #FFFFFF;">OTP will expire in <strong>5 minutes</strong>.</p>
+                        <p style="font-size: 16px; color: #FFFFFF;">OTP will expire in <strong>2 minutes</strong>.</p>
                         <div class="best" style="font-size: 16px;">
                             <p style="display: inline; color: #FFFFFF;">Best Regards,</p>
                             <br>
