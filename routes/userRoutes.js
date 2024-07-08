@@ -54,30 +54,6 @@ router.post("/resetPassword/:resetToken", validate(resetValidator), resetPasswor
 // twoFactor: 
 router.post("/enableTwoFactor", authenticate, enableTwoFactor);
 
-// create user service: 
-router.post("/createService", authenticate, createService);
-
-// get my services: 
-router.get("/myServices", authenticate, getMyServices);
-
-// update service: 
-router.put("/updateService/:serviceId", authenticate, authorizeRole("admin"), updateService);
-
-// delete a service: 
-router.delete("/deleteService/:serviceId", authenticate, deleteService);
-
-// Add transaction: 
-router.post("/createTransaction", authenticate, createTransaction);
-
-// Get my transactions: 
-router.get("/myTransactions", authenticate, getMyTransactions);
-
-// Update transaction details: 
-router.put("/updateTransaction/:transactionId", authenticate, authorizeRole("admin"), updateTransaction);
-
-// Delete transaction details:
-router.delete("/deleteTransaction/:transactionId", authenticate, deleteTransaction);
-
 // Delete a user (Admin):
 router.delete("/deleteUser/:id", authenticate, authorizeRole("admin"), deleteUser);
 

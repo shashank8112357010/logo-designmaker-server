@@ -15,13 +15,17 @@ module.exports.createTicket = async (req, res) => {
             })
         }
 
+        const username = req.user.username;
+        // console.log(username);
+
         // creating ticket id: 
-        const customId = await generateCustomId('Ticket');
+        const customId = await generateCustomId();
 
         // creating a new ticket 
         const ticket = await Ticket.create({
             _id: customId,
             userId,
+            username,
             title,
             ticketType,
             priorityStatus,

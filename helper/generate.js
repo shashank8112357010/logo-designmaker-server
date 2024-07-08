@@ -2,10 +2,10 @@ const ticketModel = require('../models/ticketModel');
 
 
 // creating id for tickets: 
-const generateCustomId = async (type) => {
+const generateCustomId = async () => {
     const year = new Date().getFullYear();
     const randomPart = Math.floor(1000 + Math.random() * 9000);
-    const customId = `${type}${year}-CS${randomPart}`;
+    const customId = `${year}-CS${randomPart}`;
 
     // if custom ID already exists
     const existingTicket = await ticketModel.findById(customId);
