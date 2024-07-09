@@ -69,7 +69,9 @@ module.exports.getAllTickets = async (req, res) => {
         }
 
         if (user.role === "admin") {
-            const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
+            const allTickets = await Ticket.find();
+            const ticketCount = allTickets.length;
+            const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
 
             if (tickets.length == 0) {
                 return res.status(404).json({
@@ -77,25 +79,34 @@ module.exports.getAllTickets = async (req, res) => {
                     message: "No tickets found"
                 })
             }
+
+            // const count = tickets.length;
             return res.status(200).json({
                 success: true,
-                tickets
+                ticketCount,
+                tickets,
+
             })
         }
 
         // when role is "user":
         filter.userId = id;
-        const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
+        const allTickets = await Ticket.find();
+        const ticketCount = allTickets.length;
+        const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
         if (tickets.length == 0) {
             return res.status(404).json({
                 success: false,
                 message: "No tickets found for user"
             })
         }
+        // const count = tickets.length;
         return res.status(200).json({
             success: true,
-            tickets
-        });
+            ticketCount,
+            tickets,
+
+        })
     } catch (error) {
         return res.status(500).json({
             success: false,
