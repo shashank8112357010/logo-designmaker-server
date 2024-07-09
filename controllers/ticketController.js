@@ -58,8 +58,19 @@ module.exports.getAllTickets = async (req, res) => {
             })
         }
 
+        const pageSize = 3;
+        const { pageNum, status } = req.query;
+        const DocToskip = (pageNum - 1) * pageSize;
+
+        const filter = {};
+
+        if (status) {
+            filter['priorityStatus.label'] = status
+        }
+
         if (user.role === "admin") {
-            const tickets = await Ticket.find();
+            const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
+
             return res.status(200).json({
                 success: true,
                 tickets
@@ -67,9 +78,10 @@ module.exports.getAllTickets = async (req, res) => {
         }
 
         // when role is "user":
-        const tickets = await Ticket.find({ userId: id })
+        filter.userId = id;
+        const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
         if (!tickets) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: "No tickets found for the user"
             })

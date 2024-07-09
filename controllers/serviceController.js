@@ -70,7 +70,7 @@ module.exports.createService = async (req, res) => {
 
         return res.status(201).json({
             success: true,
-            message: "Service has beed created successfully!!",
+            message: "Service has been created successfully!!",
             userService
         })
     } catch (error) {
