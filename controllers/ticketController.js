@@ -164,6 +164,7 @@ module.exports.reply = async (req, res) => {
         }
 
         const userId = req.user.id;
+        const username = req.user.username;
         // const customId = await generateCustomId('Reply');
         const ticket = await Ticket.findById(ticketId);
 
@@ -183,6 +184,7 @@ module.exports.reply = async (req, res) => {
 
         const reply = {
             createdBy: userId,
+            username,
             ticketId: ticket._id,
             replyBody,
             postedAt: Date.now(),

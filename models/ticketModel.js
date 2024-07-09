@@ -32,7 +32,7 @@ const ticketSchema = new mongoose.Schema({
         required: true,
     },
     postedAt: {
-        type: String,
+        type: Date,
         // default: formatDate(Date.now()),
         default: Date.now(),
     },
@@ -41,6 +41,9 @@ const ticketSchema = new mongoose.Schema({
             createdBy: {
                 type: Schema.Types.ObjectId,
                 ref: "userModel",
+            },
+            username: {
+                type: String,
             },
             ticketId: {
                 type: String,
