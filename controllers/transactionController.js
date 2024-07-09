@@ -60,7 +60,7 @@ module.exports.createTransaction = async (req, res) => {
     }
 }
 
-// get all transactions of a user: 
+// get all transactions of a user: (ALL)
 module.exports.getMyTransactions = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -85,6 +85,33 @@ module.exports.getMyTransactions = async (req, res) => {
             message: "Transactions found!!",
             transactions
         })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+}
+
+// Get transactions of a user (status: "success")
+module.exports.getSuccessfulTransactions = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const successfulTransactions = await Transaction.find({ userId: userId }, { status: "Success" });
+        if (successfulTransactions.length == 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No successful transactions found for you"
+            })
+        }
     } catch (error) {
         return res.status(500).json({
             success: false,

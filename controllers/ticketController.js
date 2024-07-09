@@ -247,6 +247,8 @@ module.exports.closeTicket = async (req, res) => {
         const ticketId = req.params.id;
         const ticket = await Ticket.findById(ticketId);
 
+        console.log("Original: ", ticket)
+
         if (!ticket) {
             return res.status(404).json({
                 success: false,
@@ -255,24 +257,32 @@ module.exports.closeTicket = async (req, res) => {
         }
 
         // if ticket is already closed:
-        if (ticket.priorityStatus === "Resolved Tickets") {
+        if (ticket.priorityStatus.label == "Resolved Ticket") {
             return res.status(200).json({
-                message: "Ticket is already closed.."
-            })
+                success: true,
+                message: "Ticket is already closed."
+            });
         }
 
-        ticket.priorityStatus = "Resolved Tickets"
-        await ticket.save();
+        // ticket.priorityStatus.label = "Resolved Ticket";
+        // ticket.priorityStatus.color = "bg-green-500";
+        // console.log(ticket);
+        // const savedTicket = await ticket.save();
+        // console.log("Saved: ", savedTicket);
 
+        const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, { 'priorityStatus.label': "Resolved Ticket", 'priorityStatus.color': "bg-green-500" }, { new: true })
+        console.log("updated: ", updatedTicket)
         return res.status(200).json({
             success: true,
             message: "status updated!!",
-            ticket          // updated with status as "resolved"..
+            // ticket          // updated with status as "resolved"..
+            // savedTicket
+            updatedTicket
         })
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error
+            error: error.message
         })
     }
 }

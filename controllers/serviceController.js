@@ -1,6 +1,7 @@
 const multer = require("multer");
 const Services = require("../models/servicesModel");
 const User = require("../models/userModel");
+const { uploadFiles } = require("../middlewares/multer");
 
 // create user service:
 module.exports.createService = async (req, res) => {
