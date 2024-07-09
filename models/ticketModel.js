@@ -32,7 +32,8 @@ const ticketSchema = new mongoose.Schema({
         required: true,
     },
     postedAt: {
-        type: Date,
+        type: String,
+        // default: formatDate(Date.now()),
         default: Date.now(),
     },
     replies: [
@@ -41,7 +42,7 @@ const ticketSchema = new mongoose.Schema({
                 type: Schema.Types.ObjectId,
                 ref: "userModel",
             },
-            ticketNumber: {
+            ticketId: {
                 type: String,
                 ref: "ticketModel",
             },
@@ -59,3 +60,17 @@ const ticketSchema = new mongoose.Schema({
 const ticketModel = mongoose.model('ticketModel', ticketSchema);
 
 module.exports = ticketModel;
+
+// // function to format date to "yyyy-mm-dd" format
+// function formatDate(date) {
+//     let d = new Date(date)
+
+//     let month = '' + (d.getMonth() + 1)
+//     let day = '' + d.getDate()
+//     let year = d.getFullYear();
+
+//     if (month.length < 2) month = '0' + month;
+//     if (day.length < 2) day = '0' + day;
+
+//     return [year, month, day].join('-');
+// }

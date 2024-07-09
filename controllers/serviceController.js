@@ -85,6 +85,7 @@ module.exports.createService = async (req, res) => {
 module.exports.getMyServices = async (req, res) => {
     try {
         const userId = req.user.id;
+        const { pageNum } = req.query;
         // console.log(id);
         const user = await User.findById(userId);
 
@@ -95,7 +96,10 @@ module.exports.getMyServices = async (req, res) => {
             })
         }
 
-        const myServices = await Services.find({ userId: userId });
+        const pageSize = 3;
+        const DocToskip = (pageNum - 1) * pageSize;
+
+        const myServices = await Services.find({ userId: userId }).skip(DocToskip).limit(pageSize);
 
         if (myServices.length == 0) {
             return res.status(404).json({

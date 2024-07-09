@@ -141,17 +141,31 @@ module.exports.getTicketById = async (req, res) => {
 // Ticket reply:
 module.exports.reply = async (req, res) => {
     try {
-        const { ticketNumber, replyBody } = req.body;
-        if (!ticketNumber || !replyBody) {
+        const { ticketId, replyBody } = req.body;
+        // if (!ticketId || !replyBody) {
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Provide the required fields."
+        //     })
+        // }
+
+        if (!ticketId) {
             return res.status(400).json({
                 success: false,
-                message: "Provide the required fields."
+                message: "Provide the ticket ID."
+            })
+        }
+
+        if (!replyBody) {
+            return res.status(400).json({
+                success: false,
+                message: "Provide the reply body."
             })
         }
 
         const userId = req.user.id;
         // const customId = await generateCustomId('Reply');
-        const ticket = await Ticket.findById(ticketNumber);
+        const ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
             res.status(404).json({
@@ -169,7 +183,7 @@ module.exports.reply = async (req, res) => {
 
         const reply = {
             createdBy: userId,
-            ticketNumber: ticket._id,
+            ticketId: ticket._id,
             replyBody,
             postedAt: Date.now(),
         }
