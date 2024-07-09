@@ -52,7 +52,7 @@ module.exports.getAllTickets = async (req, res) => {
         const user = await User.findById(id);
 
         if (!user) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
                 message: "User not found",
             })
@@ -71,6 +71,12 @@ module.exports.getAllTickets = async (req, res) => {
         if (user.role === "admin") {
             const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
 
+            if (tickets.length == 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No tickets found"
+                })
+            }
             return res.status(200).json({
                 success: true,
                 tickets
@@ -80,10 +86,10 @@ module.exports.getAllTickets = async (req, res) => {
         // when role is "user":
         filter.userId = id;
         const tickets = (await Ticket.find(filter).skip(DocToskip).limit(pageSize));
-        if (!tickets) {
+        if (tickets.length == 0) {
             return res.status(404).json({
                 success: false,
-                message: "No tickets found for the user"
+                message: "No tickets found for user"
             })
         }
         return res.status(200).json({
@@ -93,7 +99,7 @@ module.exports.getAllTickets = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error
+            error: error.message
         })
     }
 }
@@ -218,7 +224,7 @@ module.exports.closeTicket = async (req, res) => {
         const ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
-            return res.status(500).json({
+            return res.status(404).json({
                 success: false,
                 message: "Ticket is not found"
             })
