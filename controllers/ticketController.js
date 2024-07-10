@@ -237,6 +237,8 @@ module.exports.searchTicket = async (req, res) => {
         }
 
         if (user.role == "admin") {
+            const allTickets = await Ticket.find(searchQuery);
+            const ticketCount = allTickets.length;
             const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
 
             if (!tickets.length) {
@@ -247,12 +249,15 @@ module.exports.searchTicket = async (req, res) => {
             }
             return res.status(200).json({
                 success: true,
+                ticketCount,
                 tickets,
             })
         }
 
         else {
             searchQuery.userId = userId;
+            const allTickets = await Ticket.find(searchQuery);
+            const ticketCount = allTickets.length;
             const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
 
             if (!tickets.length) {
@@ -263,6 +268,7 @@ module.exports.searchTicket = async (req, res) => {
             }
             return res.status(200).json({
                 success: true,
+                ticketCount,
                 tickets,
             })
         }
