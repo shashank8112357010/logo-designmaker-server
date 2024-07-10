@@ -175,7 +175,7 @@ module.exports.reply = async (req, res) => {
         }
 
         // if ticket is resolved, can't reply: 
-        if (ticket.priorityStatus === 'Resolved Tickets') {
+        if (ticket.priorityStatus.label === 'Resolved Ticket') {
             return res.status(400).json({
                 success: false,
                 message: "Cannot reply to a resolved ticket.."

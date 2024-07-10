@@ -41,10 +41,10 @@ require("./config/passport.js");
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use("/api/dashboard", userRoute, serviceRoute, transactionRoute);
+app.use("/api/dashboard", userRoute);
 app.use("/api/ticket", ticketRoute);
-// app.use("/api/dashboard", serviceRoute);
-// app.use("/api/dashboard", transactionRoute);
+app.use("/api/dashboard/service", serviceRoute);
+app.use("/api/dashboard/transaction", transactionRoute);
 
 // SERVER SETUP:
 const server = app.listen(PORT, console.log(`Server is running on port ${PORT}`));
