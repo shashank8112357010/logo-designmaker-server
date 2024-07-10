@@ -1,6 +1,7 @@
 const { generateCustomId } = require("../helper/generate");
 const Ticket = require("../models/ticketModel");
-const User = require("../models/userModel")
+const User = require("../models/userModel");
+const { search } = require("../routes/ticketRoutes");
 
 // Creating a ticket: 
 module.exports.createTicket = async (req, res) => {
@@ -210,8 +211,20 @@ module.exports.reply = async (req, res) => {
 // Search a ticket: 
 module.exports.searchTicket = async (req, res) => {
     try {
-        const { ticketTitle, ticketNo } = req.query;
+        const { ticketTitle, ticketNo, pageNum = 1, status } = req.query;
         const searchQuery = {};
+
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+
+        const pageSize = 3;
+        const DocToskip = (pageNum - 1) * pageSize;
 
         if (ticketTitle) {
             searchQuery.title = { $regex: ticketTitle, $options: 'i' }
@@ -219,20 +232,40 @@ module.exports.searchTicket = async (req, res) => {
         if (ticketNo) {
             searchQuery._id = { $regex: ticketNo, $options: 'i' }
         }
-
-        const tickets = await Ticket.find(searchQuery);
-        if (!tickets.length) {
-            return res.status(200).json({
-                success: true,
-                message: "No tickets found",
-                tickets: []
-            });
+        if (status) {
+            searchQuery['priorityStatus.label'] = { $regex: status, $options: 'i' }
         }
 
-        return res.status(200).json({
-            success: true,
-            tickets,
-        })
+        if (user.role == "admin") {
+            const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
+
+            if (!tickets.length) {
+                return res.status(200).json({
+                    success: true,
+                    message: "No tickets found",
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                tickets,
+            })
+        }
+
+        else {
+            searchQuery.userId = userId;
+            const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
+
+            if (!tickets.length) {
+                return res.status(200).json({
+                    success: true,
+                    message: "No tickets found",
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                tickets,
+            })
+        }
     } catch (error) {
         return res.status(500).json({
             success: false,
