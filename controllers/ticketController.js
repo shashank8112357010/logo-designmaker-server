@@ -245,6 +245,7 @@ module.exports.searchTicket = async (req, res) => {
                 return res.status(200).json({
                     success: true,
                     message: "No tickets found",
+                    tickets: []
                 });
             }
             return res.status(200).json({
@@ -264,6 +265,7 @@ module.exports.searchTicket = async (req, res) => {
                 return res.status(200).json({
                     success: true,
                     message: "No tickets found",
+                    tickets: []
                 });
             }
             return res.status(200).json({
