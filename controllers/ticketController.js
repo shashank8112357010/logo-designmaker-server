@@ -41,7 +41,7 @@ module.exports.createTicket = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         });
     }
 }
@@ -108,7 +108,7 @@ module.exports.getAllTickets = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -134,7 +134,7 @@ module.exports.getTicketById = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -203,7 +203,7 @@ module.exports.reply = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "An error occurred while adding the reply.",
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -323,7 +323,7 @@ module.exports.closeTicket = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -347,7 +347,7 @@ module.exports.updateTicket = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error
+            message: error.message
         })
     }
 }
@@ -370,7 +370,7 @@ module.exports.deleteTicket = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error
+            message: error.message
         })
     }
 }

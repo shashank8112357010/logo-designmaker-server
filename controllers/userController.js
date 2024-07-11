@@ -778,7 +778,7 @@ module.exports.changePasswordAfterAuth = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -827,7 +827,7 @@ module.exports.changePasswordBeforeAuth = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -890,7 +890,7 @@ module.exports.resetPassword = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message,
+            message: error.message
         });
     }
 }
@@ -925,7 +925,7 @@ module.exports.setPreferences = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -944,7 +944,7 @@ module.exports.enableTwoFactor = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -979,7 +979,7 @@ module.exports.deleteUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         });
     }
 };
@@ -1022,7 +1022,7 @@ module.exports.uploadProfilePicture = async (req, res) => {
                 })
             } catch (error) {
                 return res.status(500).json({
-                    error: error.message
+                    message: error.message
                 })
             }
         }
