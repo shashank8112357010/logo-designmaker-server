@@ -197,7 +197,33 @@ module.exports.getTicketById = async (req, res) => {
     try {
         // getting ticket id from params to open a particular ticket:
         const { id } = req.params;
-        const ticket = await Ticket.findById(id);
+        // const ticket = await Ticket.findById(id);
+
+        const ticket = await Ticket.aggregate([
+            { $match: { _id: id } },
+            {
+                $lookup: {
+                    from: 'usermodels',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    title: 1,
+                    ticketType: 1,
+                    priorityStatus: 1,
+                    ticketBody: 1,
+                    postedAt: 1,
+                    replies: 1,
+                    username: '$user.username',
+                    profileImg: '$user.profileImg.url'
+                }
+            },
+        ]);
 
         if (!ticket) {
             return res.status(404).json({
