@@ -17,8 +17,8 @@ router.get("/openTicket/:id", authenticate, getTicketById);
 // Reply to ticket: 
 router.post("/reply", authenticate, reply);
 
-// search a ticket: 
-router.get("/searchTicket", authenticate, searchTicket);
+// // search a ticket: 
+// router.get("/searchTicket", authenticate, searchTicket);
 
 // Close ticket: 
 router.put("/close/:id", authenticate, closeTicket);

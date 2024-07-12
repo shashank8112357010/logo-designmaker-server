@@ -57,7 +57,7 @@ module.exports.getAllTickets = async (req, res) => {
         }
 
         let pageSize = 3;
-        let { pageNum, status } = req.query;
+        let { ticketTitle, pageNum = 1, status } = req.query;
 
         pageNum = parseInt(pageNum, 10);
         if (isNaN(pageNum) || pageNum < 1) {
@@ -66,21 +66,24 @@ module.exports.getAllTickets = async (req, res) => {
 
         let DocToskip = (pageNum - 1) * pageSize;
 
-        const filter = {};
+        const searchQuery = {};
 
+        if (ticketTitle) {
+            searchQuery.title = { $regex: ticketTitle, $options: 'i' }
+        }
         if (status) {
-            filter['priorityStatus.label'] = status
+            searchQuery['priorityStatus.label'] = { $regex: status, $options: 'i' }
         }
 
         if (user.role === "admin") {
             // console.log("Filter:", filter);
-            const allTickets = await Ticket.find(filter);
+            const allTickets = await Ticket.find(searchQuery);
             const ticketCount = allTickets.length;
 
             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
 
             const tickets = await Ticket.aggregate([
-                { $match: filter },
+                { $match: searchQuery },
                 {
                     $lookup: {
                         from: 'usermodels',
@@ -100,7 +103,7 @@ module.exports.getAllTickets = async (req, res) => {
                         postedAt: 1,
                         replies: 1,
                         username: '$user.username',
-                        profile: '$user.profileImg'
+                        profileImg: '$user.profileImg.url'
                     }
                 },
                 { $skip: DocToskip },
@@ -122,13 +125,13 @@ module.exports.getAllTickets = async (req, res) => {
         }
 
         if (user.role === "user") {
-            filter.userId = new mongoose.Types.ObjectId(req.user.id);
+            searchQuery.userId = new mongoose.Types.ObjectId(req.user.id);
 
-            if (status) {
-                filter['priorityStatus.label'] = status;
-            }
+            // if (status) {
+            //     searchQuery['priorityStatus.label'] = status;
+            // }
             // console.log("FILTER:", filter);
-            const allTickets = await Ticket.find(filter);
+            const allTickets = await Ticket.find(searchQuery);
             const ticketCount = allTickets.length;
             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
             // console.log("ALL COUNT", ticketCount);
@@ -137,7 +140,7 @@ module.exports.getAllTickets = async (req, res) => {
             const tickets = await Ticket.aggregate([
                 // { $match: filter },
                 {
-                    $match: filter
+                    $match: searchQuery
                 },
                 {
                     $lookup: {
@@ -158,7 +161,7 @@ module.exports.getAllTickets = async (req, res) => {
                         postedAt: 1,
                         replies: 1,
                         username: '$user.username',
-                        profile: '$user.profileImg'
+                        profileImg: '$user.profileImg.url'
                     }
                 },
                 { $skip: DocToskip },
@@ -302,79 +305,76 @@ module.exports.reply = async (req, res) => {
     }
 }
 
-// Search a ticket: 
-module.exports.searchTicket = async (req, res) => {
-    try {
-        const { ticketTitle, ticketNo, pageNum = 1, status } = req.query;
-        const searchQuery = {};
+// // Search a ticket: 
+// module.exports.searchTicket = async (req, res) => {
+//     try {
+//         const { ticketTitle, pageNum = 1, status } = req.query;
+//         const searchQuery = {};
 
-        const userId = req.user.id;
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            })
-        }
+//         const userId = req.user.id;
+//         const user = await User.findById(userId);
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User not found"
+//             })
+//         }
 
-        const pageSize = 3;
-        const DocToskip = (pageNum - 1) * pageSize;
+//         const pageSize = 3;
+//         const DocToskip = (pageNum - 1) * pageSize;
 
-        if (ticketTitle) {
-            searchQuery.title = { $regex: ticketTitle, $options: 'i' }
-        }
-        if (ticketNo) {
-            searchQuery._id = { $regex: ticketNo, $options: 'i' }
-        }
-        if (status) {
-            searchQuery['priorityStatus.label'] = { $regex: status, $options: 'i' }
-        }
+//         if (ticketTitle) {
+//             searchQuery.title = { $regex: ticketTitle, $options: 'i' }
+//         }
+//         if (status) {
+//             searchQuery['priorityStatus.label'] = { $regex: status, $options: 'i' }
+//         }
 
-        if (user.role == "admin") {
-            const allTickets = await Ticket.find(searchQuery);
-            const ticketCount = allTickets.length;
-            const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
+//         if (user.role == "admin") {
+//             const allTickets = await Ticket.find(searchQuery);
+//             const ticketCount = allTickets.length;
+//             const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
 
-            if (!tickets.length) {
-                return res.status(200).json({
-                    success: true,
-                    message: "No tickets found",
-                    tickets: []
-                });
-            }
-            return res.status(200).json({
-                success: true,
-                ticketCount,
-                tickets,
-            })
-        }
+//             if (!tickets.length) {
+//                 return res.status(200).json({
+//                     success: true,
+//                     message: "No tickets found",
+//                     tickets: []
+//                 });
+//             }
+//             return res.status(200).json({
+//                 success: true,
+//                 ticketCount,
+//                 tickets,
+//             })
+//         }
 
-        else {
-            searchQuery.userId = userId;
-            const allTickets = await Ticket.find(searchQuery);
-            const ticketCount = allTickets.length;
-            const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
+//         else {
+//             searchQuery.userId = userId;
+//             const allTickets = await Ticket.find(searchQuery);
+//             const ticketCount = allTickets.length;
+//             const tickets = await Ticket.find(searchQuery).skip(DocToskip).limit(pageSize);
 
-            if (!tickets.length) {
-                return res.status(200).json({
-                    success: true,
-                    message: "No tickets found",
-                    tickets: []
-                });
-            }
-            return res.status(200).json({
-                success: true,
-                ticketCount,
-                tickets,
-            })
-        }
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        })
-    }
-}
+//             if (!tickets.length) {
+//                 return res.status(200).json({
+//                     success: true,
+//                     message: "No tickets found",
+//                     tickets: []
+//                 });
+//             }
+//             return res.status(200).json({
+//                 success: true,
+//                 ticketCount,
+//                 tickets,
+//             })
+//         }
+//     } catch (error) {
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message
+//         })
+//     }
+// }
 
 // Closing a ticket: (setting priority status: resolved)
 module.exports.closeTicket = async (req, res) => {
