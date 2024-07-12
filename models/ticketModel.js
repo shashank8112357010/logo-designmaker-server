@@ -19,7 +19,7 @@ const ticketSchema = new mongoose.Schema({
     },
     ticketType: {
         type: String,
-        // enum: ["Finance", "Design"],
+        enum: ["Finance", "Design", "Service"],
         required: true,
     },
     priorityStatus: {
@@ -43,9 +43,9 @@ const ticketSchema = new mongoose.Schema({
                 type: Schema.Types.ObjectId,
                 ref: "userModel",
             },
-            // username: {
-            //     type: String,
-            // },
+            username: {
+                type: String,
+            },
             ticketId: {
                 type: String,
                 ref: "ticketModel",
