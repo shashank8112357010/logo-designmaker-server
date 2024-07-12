@@ -9,10 +9,10 @@ const ticketSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: "userModel",
     },
-    username: {
-        type: String,
-        // required: true,
-    },
+    // username: {
+    //     type: String,
+    //     // required: true,
+    // },
     title: {
         type: String,
         required: true,
@@ -26,6 +26,7 @@ const ticketSchema = new mongoose.Schema({
         type: Object,
         enum: [{ label: "New Ticket", color: "bg-blue-500" }, { label: "On-Going Ticket", color: "bg-yellow-500" }, { label: "Resolved Ticket", color: "bg-green-500" }],
         required: true,
+        default: { label: "New Ticket", color: "bg-blue-500" }
     },
     ticketBody: {
         type: String,
@@ -42,9 +43,9 @@ const ticketSchema = new mongoose.Schema({
                 type: Schema.Types.ObjectId,
                 ref: "userModel",
             },
-            username: {
-                type: String,
-            },
+            // username: {
+            //     type: String,
+            // },
             ticketId: {
                 type: String,
                 ref: "ticketModel",

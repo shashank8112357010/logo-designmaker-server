@@ -46,7 +46,158 @@ module.exports.createTicket = async (req, res) => {
     }
 }
 
-// Get All Tickets:  
+// // // Get All Tickets:  
+// module.exports.getAllTickets = async (req, res) => {
+//     try {
+//         const { id } = req.user;
+//         const user = await User.findById(id);
+
+//         if (!user) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User not found",
+//             })
+//         }
+
+//         let pageSize = 3;
+//         let { pageNum, status } = req.query;
+//         pageNum = parseInt(pageNum, 10);
+//         if (isNaN(pageNum) || pageNum < 1) {
+//             pageNum = 1;
+//         }
+//         let DocToskip = (pageNum - 1) * pageSize;
+
+//         const filter = {};
+
+//         if (status) {
+//             filter['priorityStatus.label'] = status
+//         }
+
+//         if (user.role === "admin") {
+//             console.log(filter);
+//             const allTickets = await Ticket.find(filter);
+//             const ticketCount = allTickets.length;
+//             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
+//             const tickets = await Ticket.aggregate([
+//                 { $match: filter },
+//                 {
+//                     $lookup: {
+//                         from: 'usermodels',
+//                         localField: 'userId',
+//                         foreignField: '_id',
+//                         as: 'user'
+//                     }
+//                 },
+//                 {
+//                     $unwind: '$user'
+//                 },
+//                 {
+//                     $project: {
+//                         _id: 1,
+//                         userId: 1,
+//                         title: 1,
+//                         ticketType: 1,
+//                         priorityStatus: 1,
+//                         ticketBody: 1,
+//                         postedAt: 1,
+//                         replies: 1,
+//                         username: '$user.username',
+//                     }
+//                 },
+//                 { $skip: DocToskip },
+//                 { $limit: pageSize }
+//             ]);
+//             console.log("length: ", tickets.length);
+//             console.log(tickets);
+//             if (tickets.length == 0) {
+//                 return res.status(404).json({
+//                     success: false,
+//                     message: "No tickets found"
+//                 })
+//             }
+//             return res.status(200).json({
+//                 success: true,
+//                 ticketCount,
+//                 tickets,
+//             })
+//         }
+
+//         // if (user.role === "user")
+//         else {
+//             // When role is "user":
+//             filter.userId = id;
+//             if (status) {
+//                 filter['priorityStatus.label'] = status;
+//             }
+//             console.log("FILTER:", filter);
+//             const allTickets = await Ticket.find(filter);
+//             const ticketCount = allTickets.length;
+//             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
+//             console.log("ALL COUNT", ticketCount);
+
+//             // console.log("ALL:", allTickets);
+//             const tickets = await Ticket.aggregate([
+//                 // { $match: filter },
+//                 {
+//                     $match: {
+//                         filter
+//                         // userId: id,
+//                         // 'priorityStatus.label': status
+//                         // username: '$user.username'
+//                     }
+//                 },
+//                 {
+//                     $lookup: {
+//                         from: 'usermodels',
+//                         localField: 'userId',
+//                         foreignField: '_id',
+//                         as: 'user'
+//                     }
+//                 },
+//                 {
+//                     $unwind: '$user',
+//                 },
+//                 {
+//                     $project: {
+//                         _id: 1,
+//                         userId: 1,
+//                         title: 1,
+//                         ticketType: 1,
+//                         priorityStatus: 1,
+//                         ticketBody: 1,
+//                         postedAt: 1,
+//                         replies: 1,
+//                         username: '$user.username',
+//                     }
+//                 },
+//                 { $skip: DocToskip },
+//                 { $limit: pageSize }
+//             ]);
+
+//             console.log("length: ", tickets.length);
+//             console.log(tickets);
+
+//             if (tickets.length == 0) {
+//                 return res.status(404).json({
+//                     success: false,
+//                     message: "No tickets found"
+//                 })
+//             }
+
+//             return res.status(200).json({
+//                 success: true,
+//                 ticketCount,
+//                 tickets,
+//             })
+//         }
+//     } catch (error) {
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message
+//         })
+//     }
+// }
+
 module.exports.getAllTickets = async (req, res) => {
     try {
         const { id } = req.user;
@@ -113,6 +264,7 @@ module.exports.getAllTickets = async (req, res) => {
     }
 }
 
+
 // OPEN TICKET: (Get single ticket by id):
 module.exports.getTicketById = async (req, res) => {
     try {
@@ -165,9 +317,9 @@ module.exports.reply = async (req, res) => {
         }
 
         const userId = req.user.id;
-        const username = req.user.username;
+        // const username = req.user.username;
         // const customId = await generateCustomId('Reply');
-        const ticket = await Ticket.findById(ticketId);
+        let ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
             res.status(404).json({
@@ -185,13 +337,24 @@ module.exports.reply = async (req, res) => {
 
         const reply = {
             createdBy: userId,
-            username,
+            // username,
             ticketId: ticket._id,
             replyBody,
             postedAt: Date.now(),
         }
 
+        // ticket.priorityStatus.label = "On-Going Ticket";
+        // ticket.priorityStatus.color = "bg-yellow-500";
+        ticket = await Ticket.findByIdAndUpdate(
+            ticketId,
+            {
+                'priorityStatus.label': "On-Going Ticket",
+                'priorityStatus.color': "bg-yellow-500"
+            },
+            { new: true }
+        )
         ticket.replies.push(reply);
+
         await ticket.save();
 
         return res.status(201).json({
