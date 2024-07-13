@@ -93,6 +93,42 @@ module.exports.getAllTickets = async (req, res) => {
                     }
                 },
                 {
+                    $lookup: {
+                        from: 'usermodels',
+                        localField: 'replies.createdBy',
+                        foreignField: '_id',
+                        as: 'replyUsers'
+                    }
+                },
+                {
+                    $addFields: {
+                        replies: {
+                            $map: {
+                                input: "$replies",
+                                as: "reply",
+                                in: {
+                                    _id: "$$reply._id",
+                                    createdBy: "$$reply.createdBy",
+                                    username: {
+                                        $arrayElemAt: [
+                                            "$replyUsers.username",
+                                            { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                        ]
+                                    },
+                                    profileImg: {
+                                        $arrayElemAt: [
+                                            "$replyUsers.profileImg.url",
+                                            { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                        ]
+                                    },
+                                    replyBody: "$$reply.replyBody",
+                                    postedAt: "$$reply.postedAt"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
                     $project: {
                         _id: 1,
                         userId: 1,
@@ -148,6 +184,42 @@ module.exports.getAllTickets = async (req, res) => {
                         localField: 'userId',
                         foreignField: '_id',
                         as: 'user'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'usermodels',
+                        localField: 'replies.createdBy',
+                        foreignField: '_id',
+                        as: 'replyUsers'
+                    }
+                },
+                {
+                    $addFields: {
+                        replies: {
+                            $map: {
+                                input: "$replies",
+                                as: "reply",
+                                in: {
+                                    _id: "$$reply._id",
+                                    createdBy: "$$reply.createdBy",
+                                    username: {
+                                        $arrayElemAt: [
+                                            "$replyUsers.username",
+                                            { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                        ]
+                                    },
+                                    profileImg: {
+                                        $arrayElemAt: [
+                                            "$replyUsers.profileImg.url",
+                                            { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                        ]
+                                    },
+                                    replyBody: "$$reply.replyBody",
+                                    postedAt: "$$reply.postedAt"
+                                }
+                            }
+                        }
                     }
                 },
                 {
@@ -207,6 +279,42 @@ module.exports.getTicketById = async (req, res) => {
                     localField: 'userId',
                     foreignField: '_id',
                     as: 'user'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'usermodels',
+                    localField: 'replies.createdBy',
+                    foreignField: '_id',
+                    as: 'replyUsers'
+                }
+            },
+            {
+                $addFields: {
+                    replies: {
+                        $map: {
+                            input: "$replies",
+                            as: "reply",
+                            in: {
+                                _id: "$$reply._id",
+                                createdBy: "$$reply.createdBy",
+                                username: {
+                                    $arrayElemAt: [
+                                        "$replyUsers.username",
+                                        { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                    ]
+                                },
+                                profileImg: {
+                                    $arrayElemAt: [
+                                        "$replyUsers.profileImg.url",
+                                        { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                    ]
+                                },
+                                replyBody: "$$reply.replyBody",
+                                postedAt: "$$reply.postedAt"
+                            }
+                        }
+                    }
                 }
             },
             {
