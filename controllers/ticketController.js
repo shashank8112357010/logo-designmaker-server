@@ -121,6 +121,7 @@ module.exports.getAllTickets = async (req, res) => {
                                             { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
                                         ]
                                     },
+                                    ticketId: "$$reply.ticketId",
                                     replyBody: "$$reply.replyBody",
                                     postedAt: "$$reply.postedAt"
                                 }
@@ -215,6 +216,7 @@ module.exports.getAllTickets = async (req, res) => {
                                             { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
                                         ]
                                     },
+                                    ticketId: "$$reply.ticketId",
                                     replyBody: "$$reply.replyBody",
                                     postedAt: "$$reply.postedAt"
                                 }
@@ -292,18 +294,19 @@ module.exports.getTicketById = async (req, res) => {
             {
                 $addFields: {
                     replies: {
-                        $map: {
-                            input: "$replies",
-                            as: "reply",
+                        $map: {         // because replies is array
+                            input: "$replies",      // particular element of replies array
+                            as: "reply",            // name of that particular element
                             in: {
-                                _id: "$$reply._id",
-                                createdBy: "$$reply.createdBy",
+                                _id: "$$reply._id",     // getting reply id
+                                createdBy: "$$reply.createdBy",    // getting created by 
                                 username: {
-                                    $arrayElemAt: [
-                                        "$replyUsers.username",
-                                        { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] }
+                                    $arrayElemAt: [         // arrayElemAt is an aggregation operator
+                                        "$replyUsers.username",     // array ki field
+                                        { $indexOfArray: ["$replyUsers._id", "$$reply.createdBy"] } // index of that field or element
                                     ]
                                 },
+                                ticketId: "$$reply.ticketId",
                                 profileImg: {
                                     $arrayElemAt: [
                                         "$replyUsers.profileImg.url",
