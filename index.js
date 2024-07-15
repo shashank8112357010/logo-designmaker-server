@@ -65,9 +65,27 @@ mongoose.connect(MONGODB_URL).then(() => {
 }).catch((err) => console.log(err));
 
 
-// unexpected error handling 
-process.on("uncaughtException", (err) => {
-    console.log(`Logged Error from index js: ${err.stack}`);
-    server.close(() => process.exit(1));
-})
+// Catching uncaught exception ->>
+process.on('unCaughtException', (err) => {
+    console.log(`UNCAUGHT EXCEPTION -> ${err.name} - ${err.message}`);
+    console.log('App SHUTTING DOWN...');
+    process.exit(1); // <- Then will shut down the server.
+});
+
+// Catching unHandleled Rejections ->
+process.on('unhandledRejection', (err) => {
+    console.log(`UNHANDELLED REJECTION -> ${err.name} - ${err.message}`);
+    console.log(err);
+    console.log('App SHUTTING DOWN...');
+    server.close(() => {	// <- This will first terminate all requests
+
+        process.exit(1); // <- Then will shut down the server.
+    });
+});
+
+// unexpected error handling
+// process.on("uncaughtException", (err) => {
+//     console.log(`Logged Error from index js: ${err.stack}`);
+//     server.close(() => process.exit(1));
+// })
 

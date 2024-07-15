@@ -81,13 +81,18 @@ module.exports.getAllTickets = async (req, res) => {
 
         if (user.role === "admin") {
             // console.log("Filter:", filter);
-            // const allTickets = await Ticket.find(searchQuery);
-            // const ticketCount = allTickets.length;
 
+            const allTickets = await Ticket.find(searchQuery);
+            const ticketCount = allTickets.length;
             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
+            // console.log("ALL COUNT", ticketCount);
 
+            // console.log("ALL:", allTickets);
             const tickets = await Ticket.aggregate([
-                { $match: searchQuery },
+                // { $match: filter },
+                {
+                    $match: searchQuery
+                },
                 {
                     $lookup: {
                         from: 'usermodels',
@@ -150,14 +155,17 @@ module.exports.getAllTickets = async (req, res) => {
                 { $skip: DocToskip },
                 { $limit: pageSize }
             ]);
+
             // console.log("length: ", tickets.length);
             // console.log(tickets);
+
             if (tickets.length == 0) {
                 return res.status(404).json({
                     success: false,
                     message: "No tickets found"
                 })
             }
+
             return res.status(200).json({
                 success: true,
                 ticketCount,
