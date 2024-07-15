@@ -1,5 +1,6 @@
 const ticketModel = require('../models/ticketModel');
-
+const { generateResetToken } = require('./generateResetToken');
+const jwt = require('jsonwebtoken')
 
 // creating id for tickets: 
 const generateCustomId = async () => {
@@ -23,4 +24,35 @@ const generateOTP = async () => {
 
 }
 
-module.exports = { generateCustomId, generateOTP };
+// Function to generate token for user: 
+const generateToken = async (user) => {
+    const token = jwt.sign(
+        {
+            id: user._id,
+            workEmail: user.workEmail,
+            role: user.role
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "2h",
+        }
+    );
+
+    return token;
+}
+
+const generateRefreshToken = async (user) => {
+    const refreshToken = jwt.sign({
+        id: user._id,
+        workEmail: user.workEmail,
+        role: user.role
+    },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "5d",
+        });
+
+    return refreshToken;
+}
+
+module.exports = { generateCustomId, generateOTP, generateToken, generateRefreshToken };

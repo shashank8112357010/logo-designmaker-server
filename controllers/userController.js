@@ -3,7 +3,7 @@ const UserReq = require("../models/userReqModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { upload, uploadFiles } = require("../middlewares/multer");
-const { generateOTP } = require("../helper/generate");
+const { generateOTP, generateToken, generateRefreshToken } = require("../helper/generate");
 const OTP = require("../models/otpModel")
 const agenda = require("../helper/sendEmail");
 const Token = require("../models/tokenModel");
@@ -480,7 +480,32 @@ module.exports.searchUser = async (req, res) => {
     }
 }
 
-// Get user details: 
+// Getting user details: 
+module.exports.whoAmI = async (req, res) => {
+    try {
+        const id = req.user;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        // console.log(user);
+        return res.status(200).json({
+            success: true,
+            message: "User Details",
+            user
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
+// Get user details and requirements: 
 module.exports.getUserDetailsAndReq = async (req, res) => {
     try {
         const id = req.user;
@@ -1029,35 +1054,5 @@ module.exports.uploadProfilePicture = async (req, res) => {
     })
 }
 
-// Function to generate token for user: 
-const generateToken = async (user) => {
-    const token = jwt.sign(
-        {
-            id: user._id,
-            workEmail: user.workEmail,
-            role: user.role
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: "2h",
-        }
-    );
-
-    return token;
-}
-
-const generateRefreshToken = async (user) => {
-    const refreshToken = jwt.sign({
-        id: user._id,
-        workEmail: user.workEmail,
-        role: user.role
-    },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: "5d",
-        });
-
-    return refreshToken;
-}
 
 // shashank

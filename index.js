@@ -6,6 +6,8 @@ require("dotenv").config();
 const MONGODB_URL = process.env.DB_URL;
 const ticketRoute = require("./routes/ticketRoutes.js");
 const userRoute = require("./routes/userRoutes.js");
+// const authRoute = require("./routes/authRoutes.js");
+
 const serviceRoute = require("./routes/serviceRoutes.js");
 const transactionRoute = require("./routes/transactionRoutes.js");
 const passport = require("passport");
@@ -49,6 +51,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/api/dashboard", userRoute);
+// app.use("/api/dashboard", authRoute);
 app.use("/api/ticket", ticketRoute);
 app.use("/api/dashboard/service", serviceRoute);
 app.use("/api/dashboard/transaction", transactionRoute);
