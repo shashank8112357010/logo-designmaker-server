@@ -5,6 +5,7 @@ const User = require("../models/userModel");
 
 // Creating a ticket: 
 module.exports.createTicket = async (req, res) => {
+    // console.log("Error");
     try {
         const { title, ticketType, priorityStatus, ticketBody } = req.body;
         // getting user id:
@@ -23,19 +24,22 @@ module.exports.createTicket = async (req, res) => {
         const ticket = await Ticket.create({
             _id: customId,
             userId,
-            username,
+            // username,
             title,
             ticketType,
             priorityStatus,
+            postedAt: Date.now(),
             ticketBody,
         })
 
+        // console.log("Ticket ", ticket);
         return res.status(201).json({
             success: true,
             message: 'Ticket created!!',
             ticket
         });
     } catch (error) {
+        // console.log(error)
         return res.status(500).json({
             success: false,
             message: error.message
@@ -77,8 +81,8 @@ module.exports.getAllTickets = async (req, res) => {
 
         if (user.role === "admin") {
             // console.log("Filter:", filter);
-            const allTickets = await Ticket.find(searchQuery);
-            const ticketCount = allTickets.length;
+            // const allTickets = await Ticket.find(searchQuery);
+            // const ticketCount = allTickets.length;
 
             // const tickets = await Ticket.find(filter).skip(DocToskip).limit(pageSize);
 

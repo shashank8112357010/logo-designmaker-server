@@ -19,7 +19,10 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }))
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+}));
 app.use(cookieParser());
 
 app.use(bodyParser.json());
@@ -33,6 +36,10 @@ app.use(
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 2 * 60 * 60 * 1000 // 2 hours
+        }
     })
 );
 
