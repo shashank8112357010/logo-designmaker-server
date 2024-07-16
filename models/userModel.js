@@ -65,6 +65,9 @@ const userSchema = mongoose.Schema({
     isUserReq: {
         type: Boolean,
         default: false,
+    },
+    refreshToken: {
+        type: String,
     }
 })
 

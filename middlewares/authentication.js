@@ -7,6 +7,7 @@ module.exports = async function (req, res, next) {
     // Get token from request headers
     const userToken = req.headers.authorization;
     if (!userToken) {
+        console.log("ERROR 10");
         return res.status(401).json({
             message: "Please authenticate using a token"
         })
@@ -18,6 +19,7 @@ module.exports = async function (req, res, next) {
 
         // Check if token is missing
         if (!JWT_TOKEN) {
+            console.log("ERROR 22");
             return res.status(401).json({
                 msg: 'No token, authorization denied'
             });
@@ -37,6 +39,7 @@ module.exports = async function (req, res, next) {
 
                 // Check if user exists
                 if (!user || !user.refreshToken) {
+                    console.log("ERROR 42");
                     return res.status(401).json({
                         msg: 'User not found or refresh token missing'
                     });
@@ -45,6 +48,7 @@ module.exports = async function (req, res, next) {
                 // Verify refresh token
                 jwt.verify(user.refreshToken, process.env.JWT_SECRET, (err, decoded) => {
                     if (err) {
+                        console.log("ERROR 51");
                         return res.status(401).json({
                             msg: 'Refresh token is not valid'
                         });

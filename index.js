@@ -38,10 +38,10 @@ app.use(
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: {
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 2 * 60 * 60 * 1000 // 2 hours
-        }
+        // cookie: {
+        //     secure: process.env.NODE_ENV === 'production',
+        //     maxAge: 2 * 60 * 60 * 1000 // 2 hours
+        // }
     })
 );
 

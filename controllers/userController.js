@@ -96,13 +96,17 @@ module.exports.setUserRequirements = async (req, res) => {
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
         const tokenOptions = {
-            expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
+            expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
             httpOnly: true,
         };
         const refreshTokenOptions = {
             expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
             httpOnly: true,
         };
+
+        user.refreshToken = refreshToken;
+        await user.save();
+
         res.cookie("token", token, tokenOptions);
         res.cookie("rfToken", refreshToken, refreshTokenOptions);
 
@@ -225,7 +229,7 @@ module.exports.loginUser = async (req, res) => {
             // generating refresh token:
             const refreshToken = await generateRefreshToken(user);
             const tokenOptions = {
-                expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
+                expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
                 httpOnly: true,
             };
             const refreshTokenOptions = {
@@ -264,6 +268,7 @@ module.exports.loginUser = async (req, res) => {
             }
             else {
                 user.isUserReq = true;
+                user.refreshToken = refreshToken;
                 await user.save();
                 return res.status(200).json({
                     success: true,
@@ -350,7 +355,7 @@ module.exports.verifyOTP = async (req, res) => {
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
         const tokenOptions = {
-            expires: new Date(Date.now() + 2 * 60 * 60 * 1000),         // expires in 2 hours
+            expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
             httpOnly: true,
         };
         const refreshTokenOptions = {
@@ -386,6 +391,7 @@ module.exports.verifyOTP = async (req, res) => {
         }
         else {
             user.isUserReq = true;
+            user.refreshToken = refreshToken;
             await user.save();
             return res.status(200).json({
                 success: true,
@@ -433,7 +439,8 @@ module.exports.getNewAccessToken = async (req, res) => {
         // verify refresh token: 
         jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
             if (err) {
-                return res.status(401).json({
+                console.log("ERROR: 436")
+                return res.status(403).json({
                     success: false,
                     message: 'Invalid refresh token'
                 });

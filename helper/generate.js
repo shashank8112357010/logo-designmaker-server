@@ -34,7 +34,7 @@ const generateToken = async (user) => {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "2h",
+            expiresIn: "2m",
         }
     );
 
