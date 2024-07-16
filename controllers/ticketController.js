@@ -7,13 +7,20 @@ const User = require("../models/userModel");
 module.exports.createTicket = async (req, res) => {
     // console.log("Error");
     try {
-        const { title, ticketType, priorityStatus, ticketBody } = req.body;
+        const { title, ticketType, /*priorityStatus,*/ ticketBody } = req.body;
         // getting user id:
         const userId = req.user.id;
         if (!userId) {
             return res.status(400).json({
                 success: false,
                 message: "User id is required"
+            })
+        }
+
+        if (!title || !ticketType || !ticketBody) {
+            return res.status(400).json({
+                success: false,
+                message: "Provide all details"
             })
         }
 

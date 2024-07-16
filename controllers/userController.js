@@ -15,7 +15,7 @@ const mongoose = require('mongoose');
 const { uploadImg } = require("../utils/cloudinary");
 const multer = require("multer");
 const Preference = require("../models/preferenceModel");
-
+const expressJwt = require("express-jwt");
 
 // REGISTER USER:
 module.exports.register = async (req, res) => {
@@ -104,7 +104,7 @@ module.exports.setUserRequirements = async (req, res) => {
             httpOnly: true,
         };
         res.cookie("token", token, tokenOptions);
-        res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+        res.cookie("rfToken", refreshToken, refreshTokenOptions);
 
         return res.status(201).json({
             success: true,
@@ -234,7 +234,7 @@ module.exports.loginUser = async (req, res) => {
             };
 
             res.cookie("token", token, tokenOptions);
-            res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+            res.cookie("rfToken", refreshToken, refreshTokenOptions);
 
             const userReq = await UserReq.findOne({ userId: user._id })
             // console.log(userReq)
@@ -359,7 +359,7 @@ module.exports.verifyOTP = async (req, res) => {
         };
 
         res.cookie("token", token, tokenOptions);
-        res.cookie("refresh-token", refreshToken, refreshTokenOptions);
+        res.cookie("rfToken", refreshToken, refreshTokenOptions);
 
         const userReq = await UserReq.findOne({ userId: user._id })
         // console.log(userReq)
@@ -415,6 +415,47 @@ module.exports.verifyOTP = async (req, res) => {
         });
     }
 };
+
+module.exports.getNewAccessToken = async (req, res) => {
+    try {
+        // const refreshToken = req.cookies.rfToken;
+        const { refreshToken } = req.body;
+        console.log(refreshToken);
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: 'Refresh token is required'
+            });
+        }
+
+        // verify refresh token: 
+        jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+            if (err) {
+                return res.status(403).json({ message: 'Invalid refresh token' });
+            }
+
+            console.log("DECODED: ", decoded);
+            // generate new access token
+            const token = await generateToken(decoded);
+
+            console.log("new Token: ", token);
+
+            return res.status(200).json({
+                success: true,
+                message: "New Token generated",
+                token,
+            })
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
+
 
 // Get All Users (Admin only): 
 module.exports.getAllUsersList = async (req, res) => {
