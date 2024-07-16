@@ -66,7 +66,7 @@ module.exports = async function (req, res, next) {
         // Verify token
         const decoded = jwt.verify(JWT_TOKEN, process.env.JWT_SECRET);
         // console.log(decoded);
-*/
+        */
 
         // Extract user ID from decoded token
         const userId = decoded.id;

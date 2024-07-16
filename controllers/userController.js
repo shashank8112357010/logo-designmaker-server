@@ -91,7 +91,7 @@ module.exports.setUserRequirements = async (req, res) => {
             colorOptions
         });
 
-        // generating token for user: 
+        // generating token for user: (Access token)
         const token = await generateToken(user);
         // generating refresh token:
         const refreshToken = await generateRefreshToken(user);
@@ -244,7 +244,7 @@ module.exports.loginUser = async (req, res) => {
             if (!userReq) {
                 return res.status(200).json({
                     success: true,
-                    message: "You need to set up user requirements first. ",
+                    message: "You need to set up user requirements first.",
                     // token,
                     // refreshToken,
                     isUserReq: false,
@@ -267,7 +267,7 @@ module.exports.loginUser = async (req, res) => {
                 await user.save();
                 return res.status(200).json({
                     success: true,
-                    message: "Logged in successfully with account set up done",
+                    message: "Logged in successfully",
                     token,
                     refreshToken,
                     isUserReq: true,
@@ -416,6 +416,7 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
+// Getting new access token (By using refresh token):
 module.exports.getNewAccessToken = async (req, res) => {
     try {
         // const refreshToken = req.cookies.rfToken;
@@ -423,7 +424,7 @@ module.exports.getNewAccessToken = async (req, res) => {
         console.log(refreshToken);
 
         if (!refreshToken) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Refresh token is required'
             });
@@ -432,14 +433,16 @@ module.exports.getNewAccessToken = async (req, res) => {
         // verify refresh token: 
         jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
             if (err) {
-                return res.status(403).json({ message: 'Invalid refresh token' });
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid refresh token'
+                });
             }
 
-            console.log("DECODED: ", decoded);
-            // generate new access token
+            // console.log("DECODED: ", decoded);
+            // generate new access token:
             const token = await generateToken(decoded);
-
-            console.log("new Token: ", token);
+            // console.log("new Token: ", token);
 
             return res.status(200).json({
                 success: true,
@@ -447,7 +450,6 @@ module.exports.getNewAccessToken = async (req, res) => {
                 token,
             })
         })
-
     } catch (error) {
         return res.status(500).json({
             success: false,

@@ -34,7 +34,7 @@ module.exports.createTicket = async (req, res) => {
             // username,
             title,
             ticketType,
-            priorityStatus,
+            // priorityStatus,
             postedAt: Date.now(),
             ticketBody,
         })
@@ -46,7 +46,6 @@ module.exports.createTicket = async (req, res) => {
             ticket
         });
     } catch (error) {
-        // console.log(error)
         return res.status(500).json({
             success: false,
             message: error.message
