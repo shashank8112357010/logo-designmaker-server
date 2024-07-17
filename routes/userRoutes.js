@@ -29,7 +29,7 @@ router.get("/getRequirementsOptions", getReqOptions);
 router.post("/login", validate(loginValidator), loginUser);
 
 // Generate new access token: (jwt token)
-router.post("/token", checkToken, getNewAccessToken);
+router.post("/token", getNewAccessToken);
 // router.post("/token", verifyToken, getNewAccessToken);
 
 // Verify OTP: 
