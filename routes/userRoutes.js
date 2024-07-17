@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require('jsonwebtoken')
 require("dotenv").config();
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, whoAmI, getNewAccessToken } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, whoAmI, getNewAccessToken, checkToken } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator, afterAuthPasswordValidation } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
@@ -12,9 +12,9 @@ const { authorizeRole } = require("../middlewares/authorization");
 
 // // set up middleware to verify access token
 // const jwtMiddleware = router.use(expressjwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] }));
-const { expressjwt: jwtMiddleware } = require("express-jwt");
+// const { expressjwt: jwtMiddleware } = require("express-jwt");
 
-const verifyToken = jwtMiddleware({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
+// const verifyToken = jwtMiddleware({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
 // user registration: 
 router.post("/register", validate(registerValidator), register);
@@ -29,8 +29,8 @@ router.get("/getRequirementsOptions", getReqOptions);
 router.post("/login", validate(loginValidator), loginUser);
 
 // Generate new access token: (jwt token)
-// router.post("/token", authenticate, getNewAccessToken);
-router.post("/token", verifyToken, getNewAccessToken);
+router.post("/token", checkToken, getNewAccessToken);
+// router.post("/token", verifyToken, getNewAccessToken);
 
 // Verify OTP: 
 router.post("/verifyOTP/:userId", verifyOTP);

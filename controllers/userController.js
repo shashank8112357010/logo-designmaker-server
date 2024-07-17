@@ -269,6 +269,7 @@ module.exports.loginUser = async (req, res) => {
             else {
                 user.isUserReq = true;
                 user.refreshToken = refreshToken;
+                console.log("TOKEN AT TIME OF LOGIN: ", token);
                 await user.save();
                 return res.status(200).json({
                     success: true,
@@ -422,6 +423,37 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
+// Middleware to check access token
+module.exports.checkToken = (req, res, next) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'Access token is required'
+        });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            // If the access token is expired, proceed to refresh token
+            if (err.name === 'TokenExpiredError') {
+                req.isTokenExpired = true;
+            } else {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Invalid access token'
+                });
+            }
+        } else {
+            req.user = decoded;
+            req.isTokenExpired = false;
+        }
+        next();
+    });
+};
+
+
 // Getting new access token (By using refresh token):
 module.exports.getNewAccessToken = async (req, res) => {
     try {
@@ -436,27 +468,53 @@ module.exports.getNewAccessToken = async (req, res) => {
             });
         }
 
-        // verify refresh token: 
-        jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
-            if (err) {
-                console.log("ERROR: 436")
+        if (req.isTokenExpired) {
+            const decoded = jwt.decode(refreshToken);
+
+            if (!decoded || (decoded.exp * 1000) < Date.now()) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Invalid refresh token'
+                    message: 'Refresh token is expired or invalid'
                 });
             }
 
-            // console.log("DECODED: ", decoded);
-            // generate new access token:
-            const token = await generateToken(decoded);
-            // console.log("new Token: ", token);
+            // verify refresh token: 
+            jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, verifiedDecoded) => {
+                if (err) {
+                    console.log("ERROR LINE: 436")
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Invalid refresh token'
+                    });
+                }
 
+                const user = await User.findById(verifiedDecoded.id);
+                if (!user || user.refreshToken !== refreshToken) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Invalid refresh token'
+                    });
+                }
+
+                // console.log("DECODED: ", decoded);
+                // generate new access token:
+                const token = await generateToken(user);
+                // console.log("new Token: ", token);
+
+                return res.status(200).json({
+                    success: true,
+                    message: "New Token generated",
+                    token,
+                })
+            })
+        }
+        else {
             return res.status(200).json({
                 success: true,
-                message: "New Token generated",
-                token,
-            })
-        })
+                message: "Access token is still valid",
+                token: req.body.accessToken,
+            });
+        }
     } catch (error) {
         return res.status(500).json({
             success: false,
