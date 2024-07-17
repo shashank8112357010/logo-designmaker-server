@@ -425,7 +425,9 @@ module.exports.verifyOTP = async (req, res) => {
 
 // Middleware to check access token
 module.exports.checkToken = (req, res, next) => {
-    const { token } = req.body;
+    const token = req.body.token;
+
+    console.log(token, "token",);
 
     if (!token) {
         return res.status(401).json({
@@ -468,7 +470,7 @@ module.exports.getNewAccessToken = async (req, res) => {
             });
         }
 
-        if (req.isTokenExpired) {
+        if (true) {
             const decoded = jwt.decode(refreshToken);
 
             if (!decoded || (decoded.exp * 1000) < Date.now()) {

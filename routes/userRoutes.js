@@ -28,8 +28,13 @@ router.get("/getRequirementsOptions", getReqOptions);
 // Login:
 router.post("/login", validate(loginValidator), loginUser);
 
+<<<<<<< HEAD
 // // Generate new access token: (jwt token)
 // router.post("/token", checkToken, getNewAccessToken);
+=======
+// Generate new access token: (jwt token)
+router.post("/token", getNewAccessToken);
+>>>>>>> b70f70807a9ce30b0d3890deb1153df41879b122
 // router.post("/token", verifyToken, getNewAccessToken);
 router.post("/token", authenticate, checkToken, getNewAccessToken);
 
