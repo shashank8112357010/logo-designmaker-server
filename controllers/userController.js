@@ -430,19 +430,19 @@ module.exports.checkToken = (req, res, next) => {
     if (!token) {
         return res.status(401).json({
             success: false,
-            message: 'Access token is required'
+            message: 'Token is required'
         });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            // If the access token is expired, proceed to refresh token
+            // If the token is expired, proceed to refresh token
             if (err.name === 'TokenExpiredError') {
                 req.isTokenExpired = true;
             } else {
                 return res.status(403).json({
                     success: false,
-                    message: 'Invalid access token'
+                    message: 'Invalid token'
                 });
             }
         } else {
@@ -498,13 +498,15 @@ module.exports.getNewAccessToken = async (req, res) => {
 
                 // console.log("DECODED: ", decoded);
                 // generate new access token:
-                const token = await generateToken(user);
+                const newToken = await generateToken(user);
                 // console.log("new Token: ", token);
+
+                console.log("NEW TOKEN GENERATED: ", newToken);
 
                 return res.status(200).json({
                     success: true,
                     message: "New Token generated",
-                    token,
+                    token: newToken,
                 })
             })
         }
@@ -522,6 +524,46 @@ module.exports.getNewAccessToken = async (req, res) => {
         });
     }
 }
+
+// module.exports.getNewAccessToken = async (req, res) => {
+//     try {
+//         // const refreshToken = req.cookies.rfToken;
+//         const { refreshToken } = req.body;
+//         console.log(refreshToken);
+
+//         if (!refreshToken) {
+//             return res.status(401).json({
+//                 success: false,
+//                 message: 'Refresh token is required'
+//             });
+//         }
+
+//         // verify refresh token: 
+//         jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+//             if (err) {
+//                 return res.status(403).json({ message: 'Invalid refresh token' });
+//             }
+
+//             console.log("DECODED: ", decoded);
+//             // generate new access token
+//             const token = await generateToken(decoded);
+
+//             console.log("new Token: ", token);
+
+//             return res.status(200).json({
+//                 success: true,
+//                 message: "New Token generated",
+//                 token,
+//             })
+//         })
+
+//     } catch (error) {
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message,
+//         });
+//     }
+// }
 
 
 // Get All Users (Admin only): 

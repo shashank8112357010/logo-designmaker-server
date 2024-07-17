@@ -12,9 +12,9 @@ const { authorizeRole } = require("../middlewares/authorization");
 
 // // set up middleware to verify access token
 // const jwtMiddleware = router.use(expressjwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] }));
-// const { expressjwt: jwtMiddleware } = require("express-jwt");
+const { expressjwt: jwtMiddleware } = require("express-jwt");
 
-// const verifyToken = jwtMiddleware({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
+const verifyToken = jwtMiddleware({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
 // user registration: 
 router.post("/register", validate(registerValidator), register);
@@ -28,9 +28,11 @@ router.get("/getRequirementsOptions", getReqOptions);
 // Login:
 router.post("/login", validate(loginValidator), loginUser);
 
-// Generate new access token: (jwt token)
-router.post("/token", checkToken, getNewAccessToken);
+// // Generate new access token: (jwt token)
+// router.post("/token", checkToken, getNewAccessToken);
 // router.post("/token", verifyToken, getNewAccessToken);
+router.post("/token", authenticate, checkToken, getNewAccessToken);
+
 
 // Verify OTP: 
 router.post("/verifyOTP/:userId", verifyOTP);
