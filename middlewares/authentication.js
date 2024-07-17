@@ -22,7 +22,7 @@ module.exports = async function (req, res, next) {
         // Check if token is missing
         if (!token) {
             return res.status(401).json({
-                msg: 'No token, authorization denied'
+                message: 'No token, authorization denied'
             });
         }
 
@@ -41,7 +41,7 @@ module.exports = async function (req, res, next) {
 
         // Check if user exists
         if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
         // Attach user object to request object
@@ -51,9 +51,10 @@ module.exports = async function (req, res, next) {
         next();
     } catch (err) {
         // Handle token verification errors
-        console.error('Token verification failed:', err);
+        // console.error('Token verification failed', err);
         res.status(401).json({
-            msg: 'Token is not valid'
+            success: false,
+            message: 'Token is not valid',
         });
     }
 };

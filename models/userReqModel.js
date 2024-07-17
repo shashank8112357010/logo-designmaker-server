@@ -47,14 +47,14 @@ const userReqSchema = new Schema({
     fontOptions: {
         type: [{
             type: String,
-            enum: ["Roboto", "Sans serif", "Monospace"]
+            enum: ["Roboto", "Sans serif", "Monospace", "Merriweather"]
         }],
         default: [],
     },
     colorOptions: {
         type: [{
             type: String,
-            enum: ["Neon Colors", "Red", "Green", "Blue"]
+            enum: ["GrayScale", "Red", "Blue", "Green"]
         }],
         default: [],
     }

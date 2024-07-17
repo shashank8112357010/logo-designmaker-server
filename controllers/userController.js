@@ -93,17 +93,23 @@ module.exports.setUserRequirements = async (req, res) => {
 
         // generating token for user: (Access token)
         const token = await generateToken(user);
+
         // generating refresh token:
-        const refreshToken = await generateRefreshToken(user);
+        const refreshToken = await generateRefreshToken(user, user.keepLoggedIn);
+        // console.log("Keep me logged in value at the time when user sets up requirements: ", user.keepLoggedIn);
+
+        // setting cookie options for token (access token) and refresh token
         const tokenOptions = {
-            expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
+            expires: new Date(Date.now() + 15 * 60 * 1000),         // expires in 15 minutes
             httpOnly: true,
         };
         const refreshTokenOptions = {
-            expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+            // expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+            expires: user.keepLoggedIn ? (new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)) : (new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)),
             httpOnly: true,
         };
 
+        // saving refresh token in DB:
         user.refreshToken = refreshToken;
         await user.save();
 
@@ -151,7 +157,7 @@ module.exports.getReqOptions = async (req, res) => {
 // LOGIN:
 module.exports.loginUser = async (req, res) => {
     try {
-        const { workEmail, password, keepLoggedIn } = req.body;
+        const { workEmail, password, keepLoggedIn = false } = req.body;
         if (!workEmail || !password) {
             return res.status(400).json({
                 success: false,
@@ -173,10 +179,12 @@ module.exports.loginUser = async (req, res) => {
         // getting preferences of user: 
         const preference = await Preference.findOne({ userId: user._id });
 
+        console.log("Keep logged in earlier: ", user.keepLoggedIn);
         // if boolean value keepLoggedIn is provided; update the value in DB and save:
-        if (keepLoggedIn) {
-            user.keepLoggedIn = keepLoggedIn
-        }
+        // if (keepLoggedIn) {
+        user.keepLoggedIn = keepLoggedIn
+        console.log("Keep logged in if updated: ", keepLoggedIn);
+        // }
         await user.save();
 
         // checking if provided password is same as the correct password: 
@@ -227,13 +235,14 @@ module.exports.loginUser = async (req, res) => {
             // jwt token:
             const token = await generateToken(user);
             // generating refresh token:
-            const refreshToken = await generateRefreshToken(user);
+            const refreshToken = await generateRefreshToken(user, keepLoggedIn);
             const tokenOptions = {
-                expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
+                expires: new Date(Date.now() + 15 * 60 * 1000),         // expires in 15 minutes
                 httpOnly: true,
             };
             const refreshTokenOptions = {
-                expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+                // expires: new Date(Date.now() + 5 * 60 * 60 * 1000),
+                expires: keepLoggedIn ? (new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)) : (new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)),        // expires in 5 days
                 httpOnly: true,
             };
 
@@ -258,6 +267,7 @@ module.exports.loginUser = async (req, res) => {
                         phoneNo: user.phoneNo,
                         profileImg: user.profileImg,
                         role: user.role,
+                        keepLoggedIn: user.keepLoggedIn,
                         username: user.username,
                         twoFactor: user.twoFactor,
                         generalNotification: preference.generalNotification,
@@ -269,7 +279,7 @@ module.exports.loginUser = async (req, res) => {
             else {
                 user.isUserReq = true;
                 user.refreshToken = refreshToken;
-                console.log("TOKEN AT TIME OF LOGIN: ", token);
+                // console.log("TOKEN AT TIME OF LOGIN: ", token);
                 await user.save();
                 return res.status(200).json({
                     success: true,
@@ -283,6 +293,7 @@ module.exports.loginUser = async (req, res) => {
                         phoneNo: user.phoneNo,
                         profileImg: user.profileImg,
                         role: user.role,
+                        keepLoggedIn: user.keepLoggedIn,
                         username: user.username,
                         twoFactor: user.twoFactor,
                         generalNotification: preference.generalNotification,
@@ -321,7 +332,7 @@ module.exports.verifyOTP = async (req, res) => {
 
         const userDbOTP = await OTP.findOne({ userId })
         if (!userDbOTP) {
-            return res.status(404).json({
+            return res.status(410).json({
                 success: false,
                 message: "OTP Expired"
             })
@@ -354,13 +365,14 @@ module.exports.verifyOTP = async (req, res) => {
         // generating token:
         const token = await generateToken(user);
         // generating refresh token:
-        const refreshToken = await generateRefreshToken(user);
+        const refreshToken = await generateRefreshToken(user, user.keepLoggedIn);
         const tokenOptions = {
-            expires: new Date(Date.now() + 2 * 60 * 1000),         // expires in 2 hours
+            expires: new Date(Date.now() + 15 * 60 * 1000),         // expires in 15 minutes
             httpOnly: true,
         };
         const refreshTokenOptions = {
-            expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
+            expires: user.keepLoggedIn ? (new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)) : (new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)),
+            // expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),        // expires in 5 days
             httpOnly: true,
         };
 
@@ -372,7 +384,7 @@ module.exports.verifyOTP = async (req, res) => {
         if (!userReq) {
             return res.status(200).json({
                 success: true,
-                message: "You need to set up user requirements first. ",
+                message: "You need to set up user requirements first!!",
                 // token,
                 // refreshToken,
                 isUserReq: false,
@@ -382,6 +394,7 @@ module.exports.verifyOTP = async (req, res) => {
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg,
                     role: user.role,
+                    keepLoggedIn: user.keepLoggedIn,
                     username: user.username,
                     twoFactor: user.twoFactor,
                     generalNotification: preference.generalNotification,
@@ -396,7 +409,7 @@ module.exports.verifyOTP = async (req, res) => {
             await user.save();
             return res.status(200).json({
                 success: true,
-                message: "Logged in successfully with account set up done",
+                message: "Logged in successfully",
                 token,
                 refreshToken,
                 isUserReq: true,
@@ -406,6 +419,7 @@ module.exports.verifyOTP = async (req, res) => {
                     phoneNo: user.phoneNo,
                     profileImg: user.profileImg,
                     role: user.role,
+                    keepLoggedIn: user.keepLoggedIn,
                     username: user.username,
                     twoFactor: user.twoFactor,
                     generalNotification: preference.generalNotification,
@@ -423,45 +437,12 @@ module.exports.verifyOTP = async (req, res) => {
     }
 };
 
-// Middleware to check access token
-module.exports.checkToken = (req, res, next) => {
-    const token = req.body.token;
-
-    console.log(token, "token",);
-
-    if (!token) {
-        return res.status(401).json({
-            success: false,
-            message: 'Token is required'
-        });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            // If the token is expired, proceed to refresh token
-            if (err.name === 'TokenExpiredError') {
-                req.isTokenExpired = true;
-            } else {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Invalid token'
-                });
-            }
-        } else {
-            req.user = decoded;
-            req.isTokenExpired = false;
-        }
-        next();
-    });
-};
-
-
 // Getting new access token (By using refresh token):
 module.exports.getNewAccessToken = async (req, res) => {
     try {
         // const refreshToken = req.cookies.rfToken;
         const { refreshToken } = req.body;
-        console.log(refreshToken);
+        console.log("Refresh token: ", refreshToken);
 
         if (!refreshToken) {
             return res.status(400).json({
@@ -470,55 +451,55 @@ module.exports.getNewAccessToken = async (req, res) => {
             });
         }
 
-        if (true) {
-            const decoded = jwt.decode(refreshToken);
+        // if (true) {
+        const decoded = jwt.decode(refreshToken);
 
-            if (!decoded || (decoded.exp * 1000) < Date.now()) {
-                return res.status(403).json({
+        if (!decoded || (decoded.exp * 1000) < Date.now()) {
+            return res.status(401).json({
+                success: false,
+                message: 'Refresh token is expired or invalid'
+            });
+        }
+
+        // verify refresh token: 
+        jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, verifiedDecoded) => {
+            if (err) {
+                // console.log("ERROR LINE: 436")
+                return res.status(401).json({
                     success: false,
-                    message: 'Refresh token is expired or invalid'
+                    message: 'Invalid refresh token'
                 });
             }
 
-            // verify refresh token: 
-            jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, verifiedDecoded) => {
-                if (err) {
-                    console.log("ERROR LINE: 436")
-                    return res.status(403).json({
-                        success: false,
-                        message: 'Invalid refresh token'
-                    });
-                }
+            const user = await User.findById(verifiedDecoded.id);
+            if (!user || user.refreshToken !== refreshToken) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid refresh token'
+                });
+            }
 
-                const user = await User.findById(verifiedDecoded.id);
-                if (!user || user.refreshToken !== refreshToken) {
-                    return res.status(403).json({
-                        success: false,
-                        message: 'Invalid refresh token'
-                    });
-                }
+            // console.log("DECODED: ", decoded);
+            // generate new access token:
+            const newToken = await generateToken(user);
+            // console.log("new Token: ", token);
 
-                // console.log("DECODED: ", decoded);
-                // generate new access token:
-                const newToken = await generateToken(user);
-                // console.log("new Token: ", token);
+            // console.log("NEW TOKEN GENERATED: ", newToken);
 
-                console.log("NEW TOKEN GENERATED: ", newToken);
-
-                return res.status(200).json({
-                    success: true,
-                    message: "New Token generated",
-                    token: newToken,
-                })
-            })
-        }
-        else {
             return res.status(200).json({
                 success: true,
-                message: "Access token is still valid",
-                token: req.body.accessToken,
-            });
-        }
+                message: "New Token generated",
+                token: newToken,
+            })
+        })
+        // }
+        // else {
+        //     return res.status(200).json({
+        //         success: true,
+        //         message: "Access token is still valid",
+        //         token: req.body.accessToken,
+        //     });
+        // }
     } catch (error) {
         return res.status(500).json({
             success: false,
@@ -526,47 +507,6 @@ module.exports.getNewAccessToken = async (req, res) => {
         });
     }
 }
-
-// module.exports.getNewAccessToken = async (req, res) => {
-//     try {
-//         // const refreshToken = req.cookies.rfToken;
-//         const { refreshToken } = req.body;
-//         console.log(refreshToken);
-
-//         if (!refreshToken) {
-//             return res.status(401).json({
-//                 success: false,
-//                 message: 'Refresh token is required'
-//             });
-//         }
-
-//         // verify refresh token: 
-//         jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
-//             if (err) {
-//                 return res.status(403).json({ message: 'Invalid refresh token' });
-//             }
-
-//             console.log("DECODED: ", decoded);
-//             // generate new access token
-//             const token = await generateToken(decoded);
-
-//             console.log("new Token: ", token);
-
-//             return res.status(200).json({
-//                 success: true,
-//                 message: "New Token generated",
-//                 token,
-//             })
-//         })
-
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message,
-//         });
-//     }
-// }
-
 
 // Get All Users (Admin only): 
 module.exports.getAllUsersList = async (req, res) => {
@@ -660,7 +600,8 @@ module.exports.whoAmI = async (req, res) => {
 // Get user details and requirements: 
 module.exports.getUserDetailsAndReq = async (req, res) => {
     try {
-        const id = req.user;
+        const { id } = req.user;
+        // console.log("LINE 604: USER ID = ", id);
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({
@@ -668,6 +609,7 @@ module.exports.getUserDetailsAndReq = async (req, res) => {
             });
         }
 
+        // console.log("USER === ", user);
         const result = await User.aggregate(
             [
                 {
@@ -723,7 +665,8 @@ module.exports.getUserDetailsAndReq = async (req, res) => {
 // Edit user requirements: (Choices)
 module.exports.editRequirements = async (req, res) => {
     try {
-        const userId = req.user;
+        const userId = req.user.id;
+        // console.log("USER ID : ", userId);
 
         const user = await User.findById(userId);
         if (!user) {
@@ -731,6 +674,7 @@ module.exports.editRequirements = async (req, res) => {
                 message: "User not found"
             });
         }
+        // console.log("USER - ", user);
 
         let userReq = await UserReq.findOne({ userId: userId });
         if (!userReq) {
@@ -780,7 +724,7 @@ module.exports.editProfile = async (req, res) => {
         if (err instanceof multer.MulterError) {
             return res.status(400).json({
                 success: false,
-                message: "File size too large. Maximum size should be 1MB only",
+                message: "File size too large!! Maximum size should be 1MB only",
                 error: true,
             })
         }
@@ -829,7 +773,7 @@ module.exports.editProfile = async (req, res) => {
                     if (existingUsername) {
                         return res.status(400).json({
                             success: false,
-                            message: "Can't use this username as user with this username already exists.."
+                            message: "Can't use this username as user with this username already exists!!"
                         })
                     }
                     user.username = username;
@@ -842,7 +786,7 @@ module.exports.editProfile = async (req, res) => {
                     if (existingEmail) {
                         return res.status(400).json({
                             success: false,
-                            message: "Can't use this work email as user with this work email already exists.."
+                            message: "Can't use this work email as user with this work email already exists!!"
                         })
                     }
                     user.workEmail = workEmail;
@@ -855,7 +799,7 @@ module.exports.editProfile = async (req, res) => {
                     if (existingPhoneNo) {
                         return res.status(400).json({
                             success: false,
-                            message: "Can't use this phone number as user with this phone number already exists.."
+                            message: "Can't use this phone number as user with this phone number already exists!!"
                         })
                     }
                     user.phoneNo = phoneNo;
@@ -927,7 +871,8 @@ module.exports.editProfile = async (req, res) => {
 module.exports.changePasswordAfterAuth = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        const userId = req.user;
+        const userId = req.user.id;
+        // console.log("USER ID = ", userId);
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({

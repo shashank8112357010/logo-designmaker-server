@@ -2,19 +2,13 @@ const express = require("express");
 const router = express.Router();
 const jwt = require('jsonwebtoken')
 require("dotenv").config();
-const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, whoAmI, getNewAccessToken, checkToken } = require("../controllers/userController");
+const { register, loginUser, uploadProfilePicture, setUserRequirements, searchUser, editProfile, verifyOTP, enableTwoFactor, resetPassword, changePasswordAfterAuth, changePasswordBeforeAuth, deleteUser, getUserDetailsAndReq, getReqOptions, getAllUsersList, editRequirements, setPreferences, whoAmI, getNewAccessToken, checkToken, enableKeepLoggedIn } = require("../controllers/userController");
 const { registerValidator, loginValidator, requirementsValidator, resetValidator, afterAuthPasswordValidation } = require("../validator/userValidator");
 const { validate } = require("../middlewares/validate");
 const authenticate = require("../middlewares/authentication");
 const passport = require('passport');
 const { authorizeRole } = require("../middlewares/authorization");
-// const { expressjwt } = require("express-jwt");
 
-// // set up middleware to verify access token
-// const jwtMiddleware = router.use(expressjwt({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] }));
-const { expressjwt: jwtMiddleware } = require("express-jwt");
-
-const verifyToken = jwtMiddleware({ secret: process.env.JWT_SECRET, algorithms: ['HS256'] });
 
 // user registration: 
 router.post("/register", validate(registerValidator), register);
@@ -28,16 +22,8 @@ router.get("/getRequirementsOptions", getReqOptions);
 // Login:
 router.post("/login", validate(loginValidator), loginUser);
 
-<<<<<<< HEAD
-// // Generate new access token: (jwt token)
-// router.post("/token", checkToken, getNewAccessToken);
-=======
 // Generate new access token: (jwt token)
 router.post("/token", getNewAccessToken);
->>>>>>> b70f70807a9ce30b0d3890deb1153df41879b122
-// router.post("/token", verifyToken, getNewAccessToken);
-router.post("/token", authenticate, checkToken, getNewAccessToken);
-
 
 // Verify OTP: 
 router.post("/verifyOTP/:userId", verifyOTP);

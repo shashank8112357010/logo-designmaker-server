@@ -34,14 +34,14 @@ const generateToken = async (user) => {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: "3m",
+            expiresIn: "15m",
         }
     );
 
     return token;
 }
 
-const generateRefreshToken = async (user) => {
+const generateRefreshToken = async (user, keepLoggedIn) => {
     const refreshToken = jwt.sign({
         id: user._id,
         workEmail: user.workEmail,
@@ -49,7 +49,8 @@ const generateRefreshToken = async (user) => {
     },
         process.env.JWT_SECRET,
         {
-            expiresIn: "5d",
+            // expiresIn: "5d",
+            expiresIn: keepLoggedIn ? "15d" : "1d"
         });
 
     return refreshToken;

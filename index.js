@@ -72,9 +72,9 @@ process.on('unCaughtException', (err) => {
     process.exit(1); // <- Then will shut down the server.
 });
 
-// Catching unHandleled Rejections ->
+// Catching unHandled Rejections ->
 process.on('unhandledRejection', (err) => {
-    console.log(`UNHANDELLED REJECTION -> ${err.name} - ${err.message}`);
+    console.log(`UNHANDLED REJECTION -> ${err.name} - ${err.message}`);
     console.log(err);
     console.log('App SHUTTING DOWN...');
     server.close(() => {	// <- This will first terminate all requests
