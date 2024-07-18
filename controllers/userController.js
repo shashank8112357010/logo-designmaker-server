@@ -490,6 +490,7 @@ module.exports.getNewAccessToken = async (req, res) => {
                 success: true,
                 message: "New Token generated",
                 token: newToken,
+                refreshToken: refreshToken
             })
         })
         // }
