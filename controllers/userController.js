@@ -317,7 +317,7 @@ module.exports.verifyOTP = async (req, res) => {
     try {
         const { userId } = req.params
         if (!userId) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
                 message: "User Id required"
             });
