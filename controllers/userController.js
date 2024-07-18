@@ -763,10 +763,9 @@ module.exports.editProfile = async (req, res) => {
             }
 
             // updating profile if details are provided: 
-            // if (firstName) user.firstName = firstName;
-            // if (lastName) user.lastName = lastName;
-            if (firstName) userReq.firstName = firstName;
-            if (lastName) userReq.lastName = lastName;
+            userReq.firstName = firstName !== undefined ? firstName : userReq.firstName;
+            userReq.lastName = lastName !== undefined ? lastName : userReq.lastName;
+
             // if (username) user.username = username;
             if (username) {
                 if (username !== req.user.username) {
@@ -780,6 +779,7 @@ module.exports.editProfile = async (req, res) => {
                     user.username = username;
                 }
             }
+
             // if (workEmail) user.workEmail = workEmail;
             if (workEmail) {
                 if (workEmail !== req.user.workEmail) {
@@ -793,6 +793,7 @@ module.exports.editProfile = async (req, res) => {
                     user.workEmail = workEmail;
                 }
             }
+
             // if (phoneNo) user.phoneNo = phoneNo;
             if (phoneNo) {
                 if (phoneNo !== req.user.phoneNo) {
@@ -806,10 +807,16 @@ module.exports.editProfile = async (req, res) => {
                     user.phoneNo = phoneNo;
                 }
             }
-            if (address) user.address = address;
-            if (city) user.city = city;
-            if (postalCode) user.postalCode = postalCode;
-            if (country) user.country = country;
+
+            // if (address)  user.address = address; 
+            // if (city) user.city = city;
+            // if (postalCode) user.postalCode = postalCode;
+            // if (country) user.country = country;
+            user.address = address !== undefined ? address : "NA";
+            user.city = city !== undefined ? city : "NA";
+            user.postalCode = postalCode !== undefined ? postalCode : "NA";
+            user.country = country !== undefined ? country : "NA";
+
 
             // if profile image is provided: 
             if (req.file) {
