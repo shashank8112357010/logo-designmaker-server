@@ -467,7 +467,8 @@ module.exports.getNewAccessToken = async (req, res) => {
                 // console.log("ERROR LINE: 436")
                 return res.status(401).json({
                     success: false,
-                    message: 'Invalid refresh token'
+                    // message: 'Invalid refresh token'
+                    message: 'Refresh token is expired or invalid'
                 });
             }
 
@@ -475,14 +476,15 @@ module.exports.getNewAccessToken = async (req, res) => {
             if (!user || user.refreshToken !== refreshToken) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Invalid refresh token'
+                    // message: 'Invalid refresh token'
+                    message: 'Refresh token is expired or invalid'
                 });
             }
 
             // console.log("DECODED: ", decoded);
+
             // generate new access token:
             const newToken = await generateToken(user);
-            // console.log("new Token: ", token);
 
             // console.log("NEW TOKEN GENERATED: ", newToken);
 
