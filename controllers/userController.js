@@ -444,6 +444,7 @@ module.exports.getNewAccessToken = async (req, res) => {
         const { refreshToken } = req.body;
         console.log("Refresh token: ", refreshToken);
 
+        const isTokenInvalid = false;
         if (!refreshToken) {
             return res.status(400).json({
                 success: false,
@@ -457,7 +458,8 @@ module.exports.getNewAccessToken = async (req, res) => {
         if (!decoded || (decoded.exp * 1000) < Date.now()) {
             return res.status(401).json({
                 success: false,
-                message: 'Refresh token is expired or invalid'
+                message: 'Refresh token is expired or invalid',
+                isTokenInvalid: true,
             });
         }
 
@@ -468,7 +470,8 @@ module.exports.getNewAccessToken = async (req, res) => {
                 return res.status(401).json({
                     success: false,
                     // message: 'Invalid refresh token'
-                    message: 'Refresh token is expired or invalid'
+                    message: 'Refresh token is expired or invalid',
+                    isTokenInvalid: true
                 });
             }
 
@@ -477,7 +480,8 @@ module.exports.getNewAccessToken = async (req, res) => {
                 return res.status(401).json({
                     success: false,
                     // message: 'Invalid refresh token'
-                    message: 'Refresh token is expired or invalid'
+                    message: 'Refresh token is expired or invalid',
+                    isTokenInvalid: true,
                 });
             }
 
