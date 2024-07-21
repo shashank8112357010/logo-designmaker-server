@@ -16,7 +16,7 @@ module.exports.createService = async (req, res) => {
             })
         }
 
-        const { service, status, date, /*duration*/ } = req.body;
+        const { service, date, /*duration*/ } = req.body;
 
         let currentDate = Date.now()
         const currentFormattedDate = formatDate(currentDate);
@@ -64,7 +64,7 @@ module.exports.createService = async (req, res) => {
         const userService = await Services.create({
             userId: userId,
             service,
-            status,
+            status : "Pending",
             date: formattedDate,
             // duration
         });

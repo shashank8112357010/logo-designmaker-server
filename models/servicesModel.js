@@ -17,11 +17,15 @@ const servicesSchema = mongoose.Schema({
     status: {
         type: String,
         enum: ["Completed", "Pending", "Cancelled"],
-        required: true,
+        default: "Pending",
     },
     date: {
         type: String,
         // type: Date,
+    },
+    time: {
+        type: String,
+       required : true
     },
     duration: {
         type: String,
