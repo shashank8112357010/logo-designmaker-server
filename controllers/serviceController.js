@@ -6,81 +6,91 @@ const { uploadFiles } = require("../middlewares/multer");
 // create user service:
 module.exports.createService = async (req, res) => {
     try {
+        // Getting user id from token: 
         const userId = req.user.id;
-        // console.log("userID: ", userId);
+        // Finding user with id: 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
-            })
+            });
         }
 
-        const { service, date, /*duration*/ } = req.body;
+        // Getting details for creating service: 
+        const { name, meetingTopic, service, date, time /*duration*/ } = req.body;
 
-        let currentDate = Date.now()
-        const currentFormattedDate = formatDate(currentDate);
-        console.log("current date: ", currentDate);
-        console.log("current formatted date: ", currentFormattedDate)
+        // Parse the date string to create a Date object (JS Date object..)
+        const inputDate = new Date(date);
+        console.log("input date = ", inputDate);
 
-        const formattedDate = formatDate(date);
-        console.log("date: ", date);
-        console.log("formattedDate: ", formattedDate)
+        // Parse time string "HH:MM PM"
+        const [timePart, period] = time.split(' ');
+        let [hours, minutes] = timePart.split(':').map(Number);
 
-        // if (formattedDate == 'NaN-NaN-NaN') {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Invalid date provided. Select a valid date"
-        //     });
-        // }
+        // Adjust hours for 12-hour format (conversion done for comparison)
+        if (period === 'PM' && hours !== 12) {
+            hours += 12;
+        } else if (period === 'AM' && hours === 12) {
+            hours = 0;
+        }
 
+        // Set the parsed time to the inputDate object
+        inputDate.setHours(hours, minutes, 0, 0);
+
+        // checking current date and time: 
+        const currentDateTime = new Date();
+
+        // if the input date and time are in the past, service cant be created..
+        if (inputDate < currentDateTime) {
+            return res.status(400).json({
+                success: false,
+                message: "Services can't be created for past dates or times."
+            });
+        }
+
+        // Formatting date and time: 
+        const formattedDate = formatDate(inputDate);
+        const formattedTime = formatTime(inputDate);
+
+        console.log("formatted date: ", formattedDate);
+        console.log("formatted time: ", formattedTime);
+
+        // Finding if there are existing services for the date: 
         const existingService = await Services.find({
             date: formattedDate
-        })
+        });
 
-        // console.log(existingService)
-
+        // Can not create service if a date already has 3 services created..
         if (existingService.length == 3) {
             return res.status(400).json({
                 success: false,
-                message: "3 Services are already booked for the date. Choose another date.."
-            })
-        }
-
-        // // service can not be created for previous date: 
-        // if (date <= Date.now()) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "Services can't be created for past dates..",
-        //     })
-        // }
-        if (formattedDate < currentFormattedDate) {
-            return res.status(400).json({
-                success: false,
-                message: "Services can't be created for past dates..",
-            })
+                message: "3 Services are already booked for the date. Choose another date."
+            });
         }
 
         const userService = await Services.create({
             userId: userId,
+            name,
+            meetingTopic,
             service,
-            status : "Pending",
+            status: "Pending",
             date: formattedDate,
-            // duration
+            time: formattedTime
         });
 
         return res.status(201).json({
             success: true,
             message: "Service has been created successfully!!",
             userService
-        })
+        });
     } catch (error) {
         return res.status(500).json({
             success: false,
             error: error.message
-        })
+        });
     }
-}
+};
 
 // Get services of a user: 
 module.exports.getMyServices = async (req, res) => {
@@ -227,4 +237,37 @@ function formatDate(date) {
     if (day.length < 2) day = '0' + day;
 
     return [year, month, day].join('-');
+}
+
+// Function to format time to 12 hour format: 
+function formatTime(time) {
+    if (typeof time === 'string') {
+        // Assuming time is already in 'HH:MM:SS' format
+        return time;
+    }
+
+    let t = new Date(time);
+
+    let hour = '' + t.getHours();
+    let min = '' + t.getMinutes();
+    // let sec = '' + (t.getSeconds());
+    let period = 'AM';
+
+    if (hour >= 12) {
+        period = 'PM';
+        if (hour > 12) {
+            hour -= 12;
+        }
+    }
+
+    if (hour === 0) {
+        hour = 12; // Midnight or Noon should be represented as 12
+    }
+
+    if (hour.length < 2) hour = '0' + hour;
+    if (min.length < 2) min = '0' + min;
+    // if (sec.length < 2) sec = '0' + sec;
+
+    // return [hour, min].join(':');
+    return `${hour}:${min} ${period}`
 }
