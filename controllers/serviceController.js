@@ -25,8 +25,11 @@ module.exports.createService = async (req, res) => {
         console.log("input date = ", inputDate);
 
         // Parse time string "HH:MM PM"
-        const [timePart, period] = time.split(' ');
-        let [hours, minutes] = timePart.split(':').map(Number);
+        // const [timePart, period] = time.split(' ');
+        // let [hours, minutes] = timePart.split(':').map(Number);
+        let hours = time.hour;
+        let minutes = time.minute
+        let period = time.period
 
         // Adjust hours for 12-hour format (conversion done for comparison)
         if (period === 'PM' && hours !== 12) {
@@ -87,7 +90,7 @@ module.exports.createService = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         });
     }
 };
@@ -126,7 +129,7 @@ module.exports.getMyServices = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }
@@ -185,7 +188,7 @@ module.exports.updateService = async (req, res) => {
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                error: error.message
+                message: error.message
             })
         }
     })
@@ -220,7 +223,7 @@ module.exports.deleteService = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.message
+            message: error.message
         })
     }
 }

@@ -10,7 +10,7 @@ const servicesSchema = mongoose.Schema({
     service: {
         // type: [{
         type: String,
-        enum: ["Logo Design", "Magazine Design"],
+        // enum: ["Logo Design", "Magazine Design"],
         // }],
         required: true,
     },
@@ -25,7 +25,7 @@ const servicesSchema = mongoose.Schema({
     },
     time: {
         type: String,
-       required : true
+        required: true
     },
     duration: {
         type: String,
