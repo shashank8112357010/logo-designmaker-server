@@ -23,10 +23,9 @@ module.exports.createService = async (req, res) => {
         // Parse the date string to create a Date object (JS Date object..)
         const inputDate = new Date(date);
         console.log("input date = ", inputDate);
+        console.log("input time = ", time);
 
-        // Parse time string "HH:MM PM"
-        // const [timePart, period] = time.split(' ');
-        // let [hours, minutes] = timePart.split(':').map(Number);
+        // Parse time string 
         let hours = time.hour;
         let minutes = time.minute
         let period = time.period
@@ -54,7 +53,7 @@ module.exports.createService = async (req, res) => {
 
         // Formatting date and time: 
         const formattedDate = formatDate(inputDate);
-        const formattedTime = formatTime(inputDate);
+        const formattedTime = formatTime(time);
 
         console.log("formatted date: ", formattedDate);
         console.log("formatted time: ", formattedTime);
@@ -78,7 +77,7 @@ module.exports.createService = async (req, res) => {
             meetingTopic,
             service,
             status: "Pending",
-            date: formattedDate,
+            date,
             time: formattedTime
         });
 
@@ -99,7 +98,7 @@ module.exports.createService = async (req, res) => {
 module.exports.getMyServices = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { pageNum } = req.query;
+        // const { pageNum } = req.query;
         // console.log(id);
         const user = await User.findById(userId);
 
@@ -110,10 +109,11 @@ module.exports.getMyServices = async (req, res) => {
             })
         }
 
-        const pageSize = 3;
-        const DocToskip = (pageNum - 1) * pageSize;
+        // const pageSize = 3;
+        // const DocToskip = (pageNum - 1) * pageSize;
 
-        const myServices = await Services.find({ userId: userId }).skip(DocToskip).limit(pageSize);
+        const myServices = await Services.find({ userId: userId });
+        // const myServices = await Services.find({ userId: userId }).skip(DocToskip).limit(pageSize);
 
         if (myServices.length == 0) {
             return res.status(404).json({
@@ -230,11 +230,14 @@ module.exports.deleteService = async (req, res) => {
 
 // function to format date to "yyyy-mm-dd" format
 function formatDate(date) {
-    let d = new Date(date)
+    // let d = new Date(date)
+    if (!(date instanceof Date) || isNaN(date)) {
+        throw new Error("Invalid Date object");
+    }
 
-    let month = '' + (d.getMonth() + 1)
-    let day = '' + d.getDate()
-    let year = d.getFullYear();
+    let month = '' + (date.getMonth() + 1)
+    let day = '' + date.getDate()
+    let year = date.getFullYear();
 
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
@@ -249,28 +252,11 @@ function formatTime(time) {
         return time;
     }
 
-    let t = new Date(time);
-
-    let hour = '' + t.getHours();
-    let min = '' + t.getMinutes();
-    // let sec = '' + (t.getSeconds());
-    let period = 'AM';
-
-    if (hour >= 12) {
-        period = 'PM';
-        if (hour > 12) {
-            hour -= 12;
-        }
-    }
-
-    if (hour === 0) {
-        hour = 12; // Midnight or Noon should be represented as 12
-    }
-
-    if (hour.length < 2) hour = '0' + hour;
-    if (min.length < 2) min = '0' + min;
-    // if (sec.length < 2) sec = '0' + sec;
+    // let t = new Date(time);
+    let hour = time.hour;
+    let minute = time.minute
+    let period = time.period
 
     // return [hour, min].join(':');
-    return `${hour}:${min} ${period}`
+    return `${hour}:${minute} ${period}`
 }
