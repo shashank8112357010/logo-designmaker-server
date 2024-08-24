@@ -60,11 +60,11 @@ module.exports.createService = async (req, res) => {
 
         // Finding if there are existing services for the date: 
         const existingService = await Services.find({
-            date: formattedDate
+            date
         });
 
         // Can not create service if a date already has 3 services created..
-        if (existingService.length == 3) {
+        if (existingService.length == 3 || existingService.length > 3) {
             return res.status(400).json({
                 success: false,
                 message: "3 Services are already booked for the date. Choose another date."
@@ -115,12 +115,12 @@ module.exports.getMyServices = async (req, res) => {
         const myServices = await Services.find({ userId: userId });
         // const myServices = await Services.find({ userId: userId }).skip(DocToskip).limit(pageSize);
 
-        if (myServices.length == 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Services not found for user"
-            })
-        }
+        // if (myServices.length == 0) {
+        //     return res.status(404).json({
+        //         success: false,
+        //         message: "Services not found for user"
+        //     })
+        // }
         return res.status(200).json({
             success: true,
             message: "Services found!!",
